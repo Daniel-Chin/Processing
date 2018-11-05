@@ -163,6 +163,12 @@ class Slider extends KeyboardListener{
     box_selected = #0000cc;
     hint_fontsize_ratio = .6;
   }
+
+  void setValue(int new_value) {
+    value = new_value;
+    legalizeValue();
+    onChange();
+  }
   
   private void arrowClick(String left_or_right) {
     if (hasFocus()) return;
@@ -173,7 +179,7 @@ class Slider extends KeyboardListener{
       value ++;
     }
     legalizeValue();
-    this.onChange();
+    onChange();
   }
   
   private void legalizeValue() {
@@ -200,7 +206,7 @@ class Slider extends KeyboardListener{
   void onRelease() {
     if (hasFocus()) return;
     value = int(value);
-    this.onChange();
+    onChange();
   }
   
   int getValue() {
@@ -222,7 +228,7 @@ class Slider extends KeyboardListener{
       if (input_value.length() != 0) {
         value = Integer.parseInt(input_value);
         legalizeValue();
-        this.onChange();
+        onChange();
       }
     } else if (48 <= keyCode && keyCode < 58
                 || 96 <= keyCode && keyCode < 106) {
