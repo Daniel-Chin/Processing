@@ -37,67 +37,6 @@ static class Pressable {
   }
 }
 
-void mousePressed() {
-  for (Pressable pressable : Pressable.all) {
-    if (pressable.isVisible() && pressable.isMouseOver()) {
-      pressable.onPress();
-      Pressable.dragging = pressable;
-      Pressable.last_drag_x = mouseX;
-      Pressable.last_drag_y = mouseY;
-      break;
-    }
-  }
-}
-
-void mouseReleased() {
-  if (Pressable.dragging != null) {
-    Pressable.dragging.onRelease();
-    if (Pressable.dragging.isMouseOver()) {
-      Pressable.dragging.onClick();
-    }
-    Pressable.dragging = null;
-  }
-}
-
-void mouseDragged() {
-  if (Pressable.dragging != null) {
-    Pressable.dragging.onDrag(
-      mouseX - Pressable.last_drag_x, 
-      mouseY - Pressable.last_drag_y);
-    Pressable.last_drag_x = mouseX; 
-    Pressable.last_drag_y = mouseY;
-  }
-}
-
-static class KeyboardListener extends Pressable {
-  static KeyboardListener focusing;
-  static {
-    focusing = null;
-  }
-  void onKeypress(){}
-  void focus() {
-    focusing = this;
-  }
-  void unfocus() {
-    focusing = null;
-  }
-  boolean hasFocus() {
-    return focusing == this;
-  }
-  void hide() {
-    super.hide();
-    if (focusing == this) {
-      focusing = null;
-    }
-  }
-}
-
-void keyPressed() {
-  if (KeyboardListener.focusing != null) {
-    KeyboardListener.focusing.onKeypress();
-  }
-}
-
 class Button extends Pressable {
   int x, y, _width, _height;
   String _text; 
@@ -234,6 +173,7 @@ class Slider extends KeyboardListener{
       value ++;
     }
     legalizeValue();
+    this.onChange();
   }
   
   private void legalizeValue() {
@@ -260,6 +200,7 @@ class Slider extends KeyboardListener{
   void onRelease() {
     if (hasFocus()) return;
     value = int(value);
+    this.onChange();
   }
   
   int getValue() {
@@ -281,6 +222,7 @@ class Slider extends KeyboardListener{
       if (input_value.length() != 0) {
         value = Integer.parseInt(input_value);
         legalizeValue();
+        this.onChange();
       }
     } else if (48 <= keyCode && keyCode < 58
                 || 96 <= keyCode && keyCode < 106) {
@@ -295,6 +237,10 @@ class Slider extends KeyboardListener{
     }
   }
   
+  void onChange() {
+    ; // event. To override. 
+  }
+
   boolean isMouseOver() {
     int box_x = boxX();
     return box_x < mouseX && mouseX < box_x + box_width
@@ -349,6 +295,66 @@ class Slider extends KeyboardListener{
   }
 }
 
+void mousePressed() {
+  for (Pressable pressable : Pressable.all) {
+    if (pressable.isVisible() && pressable.isMouseOver()) {
+      pressable.onPress();
+      Pressable.dragging = pressable;
+      Pressable.last_drag_x = mouseX;
+      Pressable.last_drag_y = mouseY;
+      break;
+    }
+  }
+}
+
+void mouseReleased() {
+  if (Pressable.dragging != null) {
+    Pressable.dragging.onRelease();
+    if (Pressable.dragging.isMouseOver()) {
+      Pressable.dragging.onClick();
+    }
+    Pressable.dragging = null;
+  }
+}
+
+void mouseDragged() {
+  if (Pressable.dragging != null) {
+    Pressable.dragging.onDrag(
+      mouseX - Pressable.last_drag_x, 
+      mouseY - Pressable.last_drag_y);
+    Pressable.last_drag_x = mouseX; 
+    Pressable.last_drag_y = mouseY;
+  }
+}
+
+static class KeyboardListener extends Pressable {
+  static KeyboardListener focusing;
+  static {
+    focusing = null;
+  }
+  void onKeypress(){}
+  void focus() {
+    focusing = this;
+  }
+  void unfocus() {
+    focusing = null;
+  }
+  boolean hasFocus() {
+    return focusing == this;
+  }
+  void hide() {
+    super.hide();
+    if (focusing == this) {
+      focusing = null;
+    }
+  }
+}
+
+void keyPressed() {
+  if (KeyboardListener.focusing != null) {
+    KeyboardListener.focusing.onKeypress();
+  }
+}
 
 // Demo
 class DemoButton extends Button {
