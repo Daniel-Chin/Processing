@@ -7,15 +7,20 @@ static class Pressable {
     dragging = null;
   }
   private boolean visibility;
+  protected ArrayList<Pressable> children;
   public Pressable() {
     all.add(this);
     visibility = true;
+    children = new ArrayList<Pressable>();
   }
   boolean isVisible() {
     return visibility;
   }
   void show() {
     visibility = true;
+    for (Pressable child : children) {
+      child.show();
+    }
   }
   void hide() {
     visibility = false;
@@ -23,15 +28,24 @@ static class Pressable {
       onRelease();
       dragging = null;
     }
+    for (Pressable child : children) {
+      child.hide();
+    }
   }
-  void onPress(){}
-  void onDrag(int delta_x, int delta_y){}
-  void onRelease(){}
+  void onPress() {
+  }
+  void onDrag(int delta_x, int delta_y) {
+  }
+  void onRelease() {
+  }
   boolean beingDragged() {
     return dragging == this;
   }
-  void onClick(){}
-  boolean isMouseOver(){return false;}
+  void onClick() {
+  }
+  boolean isMouseOver() {
+    return false;
+  }
   void release() {
     all.remove(this);
   }
