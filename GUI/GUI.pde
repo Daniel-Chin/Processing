@@ -1,3 +1,7 @@
+/* Issues
+  Hide and show system is not declarative
+*/
+
 static class Pressable {
   static ArrayList<Pressable> all;
   static Pressable dragging;
