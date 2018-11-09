@@ -146,7 +146,7 @@ class Slider extends KeyboardListener{
   int box_width;
   int _min, _max;
   private float value;
-  private Arrow leftArrow, rightArrow;
+  Arrow leftArrow, rightArrow;
   int fontsize;
   color line_color;
   int line_width;
