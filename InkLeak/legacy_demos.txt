@@ -1,0 +1,52 @@
+Node n;
+
+void setup() {
+    size(600, 600);
+    n = new Node(300, 300, 100);
+    n.angle = PI / 4;
+    n.wiggle_speed = 10;
+}
+
+void draw() {
+    background(0);
+    n.doWiggle();
+    stroke(255);
+    PVector p = n.sample();
+    line(0, height, p.x, p.y);
+    line(
+        n.x - cos(n.angle) * n.length/2, 
+        n.y - sin(n.angle) * n.length/2, 
+        n.x + cos(n.angle) * n.length/2, 
+        n.y + sin(n.angle) * n.length/2
+    );
+    stroke(#ff0000);
+    line(
+        n.effective_x - cos(n.angle) * n.length/2, 
+        n.effective_y - sin(n.angle) * n.length/2, 
+        n.effective_x + cos(n.angle) * n.length/2, 
+        n.effective_y + sin(n.angle) * n.length/2
+    );
+}
+
+//////////////////
+int LEN = 60;
+InkLeakCanvas c;
+void setup() {
+    size(600, 600);
+    c = new InkLeakCanvas();
+    c.start(new Node(300, 300, 0));
+    c.extend(new Node(400, 200, LEN, -PI/2));
+    c.extend(new Node(150, 150, LEN, -PI/4));
+    c.extend(new Node(200, 450, LEN, PI/4)).wiggle_size = 5 * LEN;
+    c.extend(new Node(550, 320, LEN, -PI*.3));
+    c.extend(new Node(450, 70, LEN));
+    c.extend(new Node(320, 100, LEN*2, -PI*.4));
+    background(0);
+}
+
+void draw() {
+    stroke(0);
+    echoClear(0, 0, 600, 600);
+    stroke(255);
+    c.wiggleAndDraw();
+}
