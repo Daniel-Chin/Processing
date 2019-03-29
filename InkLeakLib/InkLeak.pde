@@ -1,12 +1,8 @@
 /*
-auto correct crossing
- random flip crossing
- with or without debug
+ maybe features:
+    random occurance of angle += PI
  */
 final int WIGGLE_NOISE_UNCORRELATE = 100;
-final int EDGE_TIMES = 1;
-float CLEAR = .15f; //.015 .25 .15
-final boolean BORDER = true;
 
 class Node {
   public int x;
@@ -71,27 +67,29 @@ class Node {
       PVector.fromAngle(this.angle).dot(perpendi)
       * PVector.fromAngle(that.angle).dot(perpendi)
       < 0
-    ) {
+      ) {
       this.angle += PI;
     }
   }
-  
+
   public Node setWiggleSize(int x) {
-      this.wiggle_size = x;
-      return this;
+    this.wiggle_size = x;
+    return this;
   }
-  
+
   public Node setWiggleSpeed(int x) {
-      this.wiggle_speed = x;
-      return this;
+    this.wiggle_speed = x;
+    return this;
   }
 }
 
 class Edge {
   public Node nodeA;
   public Node nodeB;
+  public InkLeakCanvas canvas;
 
-  public Edge(Node a, Node b) {
+  public Edge(InkLeakCanvas canvas, Node a, Node b) {
+    this.canvas = canvas;
     this.nodeA = a;
     this.nodeB = b;
   }
@@ -99,12 +97,12 @@ class Edge {
   public void draw() {
     PVector pointA;
     PVector pointB;
-    for (int i = 0; i < EDGE_TIMES; i ++) {
+    for (int i = 0; i < this.canvas.edge_times; i ++) {
       pointA = this.nodeA.sample();
       pointB = this.nodeB.sample();
       line(pointA.x, pointA.y, pointB.x, pointB.y);
     }
-    if (BORDER) {
+    if (this.canvas.do_border) {
       int hori_a = int(this.nodeA.length * cos(this.nodeA.angle) / 2);
       int vert_a = int(this.nodeA.length * sin(this.nodeA.angle) / 2);
       int hori_b = int(this.nodeB.length * cos(this.nodeB.angle) / 2);
@@ -124,6 +122,8 @@ class Edge {
 class InkLeakCanvas {
   public ArrayList<Node> nodes;
   public ArrayList<Edge> edges;
+  public int edge_times = 1;
+  public boolean do_border = true;
 
   private Node lastNode = null;
 
@@ -138,7 +138,7 @@ class InkLeakCanvas {
   }
 
   public Edge link(Node a, Node b) {
-    Edge edge = new Edge(a, b);
+    Edge edge = new Edge(this, a, b);
     this.edges.add(edge);
     return edge;
   }
@@ -174,10 +174,10 @@ class InkLeakCanvas {
   }
 }
 
-void echoClear(int x1, int y1, int x2, int y2) {
+void echoClear(float density, int x1, int y1, int x2, int y2) {
   int w = x2 - x1;
   int h = y2 - y1;
-  int times = (int) ((float) abs(h) * CLEAR);
+  int times = (int) ((float) abs(h) * density);
   for (int i = 0; i < times; i ++) {
     line(
       random(w) + x1, 
@@ -188,56 +188,22 @@ void echoClear(int x1, int y1, int x2, int y2) {
   }
 }
 
-InkLeakCanvas canvas;
-void setup() {
-  size(1200, 600);
-  canvas = new InkLeakCanvas();
-  canvas.start(new Node(168, 231, 50, PI / 2));
-  canvas.extend(new Node(231, 222, 50, PI / 2));
-  canvas.extend(new Node(333, 188, 50, PI / 2));
-  canvas.start(new Node(262, 213, 63, 0));
-  canvas.extend(new Node(new PVector(296, 420), new PVector(230, 453)));
-  canvas.start(new Node(488, 208, 60, PI / 2));
-  canvas.extend(new Node(404, 186, 53, PI / 2));
-  canvas.extend(new Node(new PVector(352, 160), new PVector(404, 212)), true);
-  canvas.extend(new Node(new PVector(401, 325), new PVector(352, 399)));
-  // canvas.extend(new Node(new PVector(455, 337), new PVector(448, 407)));
-  canvas.extend(new Node(new PVector(484, 349), new PVector(484, 415)));
-  canvas.start(new Node(377, 261, 58, PI / 2));
-  canvas.extend(new Node(458, 276, 55, PI / 2));
-  canvas.start(new Node(new PVector(500, 420), new PVector(557, 436)));
-  canvas.extend(new Node(new PVector(503, 180), new PVector(559, 200)));
-  canvas.extend(new Node(new PVector(590, 276), new PVector(589, 356)));
-  canvas.extend(new Node(new PVector(616, 214), new PVector(665, 219)));
-  canvas.extend(new Node(new PVector(619, 452), new PVector(670, 431)));
-  canvas.start(new Node(712, 466, 45, 0));
-  canvas.extend(new Node(new PVector(684, 223), new PVector(731, 270)));
-  canvas.extend(new Node(new PVector(761, 264), new PVector(789, 196)));
-  canvas.extend(new Node(new PVector(768, 267), new PVector(812, 217)));
-  canvas.extend(new Node(new PVector(763, 315), new PVector(793, 348)));
-  canvas.extend(new Node(717, 341, 45, PI / 2));
-  canvas.start(new Node(826, 201, 52, - PI / 2));
-  canvas.extend(new Node(new PVector(871, 220), new PVector(886, 163)), true);
-  canvas.extend(new Node(new PVector(940, 219), new PVector(925, 162)));
-  canvas.extend(new Node(1000, 207, 58, - PI / 2), true);
-  canvas.start(new Node(905, 201, 74, 0));
-  canvas.extend(new Node(new PVector(883, 439), new PVector(945, 413)))
-//    .setWiggleSize(200)
-//    .setWiggleSpeed(6)
-    ;
-  /* the ■
-   Node n1 = canvas.start(new Node(new PVector(983, 249), new PVector(976, 343)));
-   canvas.extend(new Node(new PVector(1041, 272), new PVector(1091, 285)));
-   canvas.extend(new Node(new PVector(1079, 352), new PVector(1093, 412)));
-   Node n2 = canvas.extend(new Node(new PVector(1039, 421), new PVector(982, 450)));
-   canvas.link(n1, n2);
-   */
+void echoClear(float density) {
+  echoClear(density, 0, 0, width, height);
 }
 
-void draw() {
-  stroke(#2F768C);
-  echoClear(0, 0, width, height);
-  stroke(255);
-  canvas.wiggleAndDraw();
+void echoClear(String mode) {
+  float density;
+  if (mode.equals("low")) {
+    density = .015;
+  } else if (mode.equals("mid")) {
+    density = .15;
+  } else if (mode.equals("high")) {
+    density = .25;
+  } else {
+    density = .15;
+    println("Warning: echoClear input mismatch");
+  }
+  echoClear(density, 0, 0, width, height);
 }
 
