@@ -11,6 +11,7 @@ class Layer extends ArrayList<Layer> {
   public Layer parent;
   public PVector position;
   public PVector _size;
+  public String title = null;
 
   public Layer() {
     visibility = true;
@@ -48,6 +49,12 @@ class Layer extends ArrayList<Layer> {
       if (child.isVisible()) {
         child.draw();
       }
+    }
+    if (GUIGlobal.root == this) {
+      if (title == null) {
+        title = "Untitled";
+      }
+      surface.setTitle(title);
     }
   }
 }

@@ -65,6 +65,7 @@ Layer scene2;
 void setup() {
   size(500, 500);
   scene1 = new Scene1();
+  scene1.title = "scene 1";
   GUIGlobal.root = scene1;
   scene1.button = new ToggleButton();
   scene1.add(scene1.button);
@@ -76,6 +77,7 @@ void setup() {
   subLayer1.add(slider);
 
   scene2 = new Layer();
+  scene2.title = "scene 2 with no purpose";
   Button b3 = new BackButton();
   scene2.add(b3);
 }
