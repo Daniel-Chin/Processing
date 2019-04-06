@@ -1,13 +1,14 @@
 // Demo
-class DemoButton extends Button {
-  public DemoButton() {
-    position=new PVector(100, 100);
+class NextSceneButton extends Button {
+  public NextSceneButton() {
+    position=new PVector(150, 400);
     _size.x = 200;
-    _text = "demo";
+    _text = "next scene";
   }
 
   void onClick() {
     println("click");
+    GUIGlobal.root = scene2;
   }
 
   void onPress() {
@@ -28,7 +29,7 @@ class DemoButton extends Button {
 
 class DemoSlider extends Slider {
   DemoSlider() {
-    super(width / 2f, 0f, width / 2f, height * .2f);
+    super(100, 300, 300, 50);
   }
   void onChange() {
     ((Scene1) this.parent.parent).button._text = str(getValue());
@@ -36,25 +37,47 @@ class DemoSlider extends Slider {
 }
 
 class Scene1 extends Layer {
-  Button button;
+  ToggleButton button;
+}
+
+class BackButton extends Button {
+  BackButton () {
+    super("back", 50f, 50f, 100f, 100f);
+  }
+  void onClick() {
+    GUIGlobal.root = scene1;
+  }
+}
+
+class ToggleButton extends Button {
+  ToggleButton () {
+    super("toggle", 350f, 50f, 100f, 100f);
+  }
+  void onClick() {
+    subLayer1.toggleVisibility();
+  }
 }
 
 Scene1 scene1;
+Layer subLayer1;
+Layer scene2;
 
 void setup() {
   size(500, 500);
   scene1 = new Scene1();
   GUIGlobal.root = scene1;
-  scene1.button = new DemoButton();
+  scene1.button = new ToggleButton();
   scene1.add(scene1.button);
-  Layer subLayer1 = new Layer();
+  subLayer1 = new Layer();
   scene1.add(subLayer1);
-  subLayer1.position = new PVector(0f, height / 2f);
-  subLayer1._size = new PVector(1f, .5f);
-  Button button2 = new Button("does nothing", 0, 0, (float)height, width/2);
+  NextSceneButton button2 = new NextSceneButton();
   subLayer1.add(button2);
   DemoSlider slider = new DemoSlider();
   subLayer1.add(slider);
+
+  scene2 = new Layer();
+  Button b3 = new BackButton();
+  scene2.add(b3);
 }
 
 void draw() {

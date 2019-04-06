@@ -11,7 +11,6 @@ class Layer extends ArrayList<Layer> {
   public Layer parent;
   public PVector position;
   public PVector _size;
-  public boolean do_transfrom = true;
 
   public Layer() {
     visibility = true;
@@ -41,18 +40,15 @@ class Layer extends ArrayList<Layer> {
   void hide() {
     visibility = false;
   }
+  void toggleVisibility() {
+    visibility = ! visibility;
+  }
   void draw() {
-    pushMatrix();
-    if (do_transfrom) {
-      translate(getPosition().x, getPosition().y);
-      scale(getSize().x, getSize().y);
-    }
     for (Layer child : this) {
       if (child.isVisible()) {
         child.draw();
       }
     }
-    popMatrix();
   }
 }
 
@@ -85,18 +81,18 @@ void mousePressed() {
 }
 
 void handleMousePress(Layer layer) {  // recursively broadcast event
-  Pressable pressableChild;   // Stupid Java
   for (Layer child : layer) {
-    if (child instanceof Pressable) {
-      pressableChild = (Pressable) child;
-      if (pressableChild.isVisible() && pressableChild.isMouseOver()) {
-        pressableChild.onPress();
-        GUIGlobal.dragging = pressableChild;
-        GUIGlobal.lastDrag = new PVector(mouseX, mouseY);
-        break;
+    if (child.isVisible()) {
+      if (child instanceof Pressable) {
+        if (((Pressable) child).isMouseOver()) {
+          ((Pressable) child).onPress();
+          GUIGlobal.dragging = (Pressable) child;
+          GUIGlobal.lastDrag = new PVector(mouseX, mouseY);
+          break;
+        }
+      } else {
+        handleMousePress(child);
       }
-    } else {
-      handleMousePress(child);
     }
   }
 }
@@ -341,7 +337,6 @@ class Slider extends KeyboardListener {
     this.add(box);
     this.add(leftArrow);
     this.add(rightArrow);
-    do_transfrom = false;
   }
 
   void setValue(int new_value) {
