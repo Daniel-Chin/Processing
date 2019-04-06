@@ -211,6 +211,16 @@ class Button extends Pressable {
   }
 }
 
+class Card extends Button {
+  Card() {}
+  Card(String _text, float x, float y, float _width, float _height) {
+    super(_text, x, y, _width, _height);
+  }
+  boolean isMouseOver() {
+    return false;
+  }
+}
+
 class Slider extends KeyboardListener {
   class Arrow extends Button {
     public Arrow(String _text) {

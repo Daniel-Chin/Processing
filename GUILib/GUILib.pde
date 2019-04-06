@@ -75,6 +75,7 @@ void setup() {
   subLayer1.add(button2);
   DemoSlider slider = new DemoSlider();
   subLayer1.add(slider);
+  subLayer1.add(new Card("display", 300f, 200f, 150f, 60f));
 
   scene2 = new Layer();
   scene2.title = "scene 2 with no purpose";
