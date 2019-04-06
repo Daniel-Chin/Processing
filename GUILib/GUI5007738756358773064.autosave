@@ -1,36 +1,21 @@
 static class GUIGlobal {
   static Layer root;
   static Pressable dragging;
-  static PVector lastDrag;
   static KeyboardListener focusing;
 }
 
-class Layer extends ArrayList<Layer> {
+class Layer {
   // so that you can group components. 
+  public ArrayList<Layer> children;
   private boolean visibility;
-  public Layer parent;
-  public PVector position;
-  public PVector _size;
-  public boolean do_transfrom = true;
+  public PVector _translate;
+  public PVector _scale;
 
   public Layer() {
     visibility = true;
-    position = new PVector(0f, 0f);
-    _size = new PVector(1f, 1f);
-  }
-  void add(int index, Layer child) {
-    super.add(index, child);
-    child.parent = this;
-  }
-  boolean add(Layer child) {
-    child.parent = this;
-    return super.add(child);
-  }
-  public PVector getPosition() {
-    return position;
-  }
-  public PVector getSize() {
-    return _size;
+    children = new ArrayList<Layer>();
+    _translate = new PVector(0f, 0f);
+    _scale = new PVector(1f, 1f);
   }
   public boolean isVisible() {
     return visibility;
@@ -43,11 +28,9 @@ class Layer extends ArrayList<Layer> {
   }
   void draw() {
     pushMatrix();
-    if (do_transfrom) {
-      translate(getPosition().x, getPosition().y);
-      scale(getSize().x, getSize().y);
-    }
-    for (Layer child : this) {
+    translate(_translate.x, _translate.y);
+    scale(_scale.x, _scale.y);
+    for (Layer child : children) {
       if (child.isVisible()) {
         child.draw();
       }
@@ -56,7 +39,8 @@ class Layer extends ArrayList<Layer> {
   }
 }
 
-class Pressable extends Layer {
+static class Pressable extends Layer {
+  static int last_drag_x, last_drag_y;
   void hide() {
     super.hide();
     if (GUIGlobal.dragging == this) {
@@ -72,7 +56,7 @@ class Pressable extends Layer {
   }
   void onPress() {
   }
-  void onDrag(float delta_x, float delta_y) {
+  void onDrag(int delta_x, int delta_y) {
   }
   void onRelease() {
   }
@@ -81,18 +65,17 @@ class Pressable extends Layer {
 }
 
 void mousePressed() {
-  handleMousePress(GUIGlobal.root);
+  handleMousePress(root);
 }
 
 void handleMousePress(Layer layer) {  // recursively broadcast event
-  Pressable pressableChild;   // Stupid Java
-  for (Layer child : layer) {
+  for (Layer child : layer.children) {
     if (child instanceof Pressable) {
-      pressableChild = (Pressable) child;
-      if (pressableChild.isVisible() && pressableChild.isMouseOver()) {
-        pressableChild.onPress();
-        GUIGlobal.dragging = pressableChild;
-        GUIGlobal.lastDrag = new PVector(mouseX, mouseY);
+      if (child.isVisible() && child.isMouseOver()) {
+        child.onPress();
+        Pressable.GUIGlobal.dragging = child;
+        Pressable.last_drag_x = mouseX;
+        Pressable.last_drag_y = mouseY;
         break;
       }
     } else {
@@ -102,50 +85,57 @@ void handleMousePress(Layer layer) {  // recursively broadcast event
 }
 
 void mouseDragged() {
-  if (GUIGlobal.dragging != null) {
-    GUIGlobal.dragging.onDrag(
-      mouseX - GUIGlobal.lastDrag.x, 
-      mouseY - GUIGlobal.lastDrag.y);
-    GUIGlobal.lastDrag = new PVector(mouseX, mouseY);
+  if (Pressable.GUIGlobal.dragging != null) {
+    Pressable.GUIGlobal.dragging.onDrag(
+      mouseX - Pressable.last_drag_x, 
+      mouseY - Pressable.last_drag_y);
+    Pressable.last_drag_x = mouseX; 
+    Pressable.last_drag_y = mouseY;
   }
 }
 
 void mouseReleased() {
-  if (GUIGlobal.dragging != null) {
-    GUIGlobal.dragging.onRelease();
-    if (GUIGlobal.dragging.isMouseOver()) {
-      GUIGlobal.dragging.onClick();
+  if (Pressable.GUIGlobal.dragging != null) {
+    Pressable.GUIGlobal.dragging.onRelease();
+    if (Pressable.GUIGlobal.dragging.isMouseOver()) {
+      Pressable.GUIGlobal.dragging.onClick();
     }
-    GUIGlobal.dragging = null;
+    Pressable.GUIGlobal.dragging = null;
   }
 }
 
-class KeyboardListener extends Layer {
+static class KeyboardListener extends Layer {
+  static KeyboardListener focusing;
+  static {
+    focusing = null;
+  }
   void focus() {
-    GUIGlobal.focusing = this;
+    focusing = this;
   }
   void unfocus() {
-    GUIGlobal.focusing = null;
+    focusing = null;
   }
   boolean hasFocus() {
-    return GUIGlobal.focusing == this;
+    return focusing == this;
   }
   void hide() {
     super.hide();
-    if (GUIGlobal.focusing == this) {
-      GUIGlobal.focusing = null;
+    if (focusing == this) {
+      focusing = null;
     }
   }
-  void onKeypress(int key_code) {}
+  void onKeypress(int key_code) {
+  }
 }
 
 void keyPressed() {
-  if (GUIGlobal.focusing != null) {
-    GUIGlobal.focusing.onKeypress(keyCode);
+  if (KeyboardListener.focusing != null) {
+    KeyboardListener.focusing.onKeypress(keyCode);
   }
 }
 
 class Button extends Pressable {
+  int x, y, _width, _height;
   String _text; 
   int fontsize;
   color back;
@@ -155,10 +145,12 @@ class Button extends Pressable {
   private boolean floating;
   private float float_progress;
 
-  public Button(String _text, float x, float y, float _width, float _height) {
+  public Button(String _text, int x, int y, int _width, int _height) {
     this._text = _text;
-    this.position = new PVector(x, y);
-    this._size = new PVector(_width, _height);
+    this.x = x;
+    this.y = y;
+    this._width = _width;
+    this._height = _height;
     fontsize = 30;
     back = #000000;
     fore = #FFFFFF;
@@ -168,7 +160,7 @@ class Button extends Pressable {
   }
 
   public Button() {
-    this("", 0f, 0f, 100f, 100f);
+    this("", 0, 0, 100, 100);
   }
 
   void draw() {
@@ -194,48 +186,50 @@ class Button extends Pressable {
         }
       }
     }
-    rect(getPosition().x, getPosition().y, getSize().x, getSize().y);
+    rect(x, y, _width, _height);
     textSize(fontsize);
     fill(fore);
     textAlign(CENTER, CENTER);
-    text(_text, getPosition().x, getPosition().y - fontsize/8, getSize().x, getSize().y);
+    text(_text, x, y - fontsize/8, _width, _height);
     popMatrix();
   }
 
   boolean isMouseOver() {
-    return getPosition().x < mouseX && mouseX < getPosition().x+getSize().x 
-      && getPosition().y < mouseY && mouseY < getPosition().y+getSize().y;
+    return x<mouseX && mouseX<x+_width 
+      && y<mouseY && mouseY<y+_height;
   }
 }
 
 class Slider extends KeyboardListener {
   class Arrow extends Button {
-    public Arrow(String _text) {
-      this._text = _text;
+    Slider parent;
+    public Arrow(Slider parent, String left_or_right) {
+      this.parent = parent;
       fontsize = 36;
-    }
-    PVector getPosition() {
-      float x;
-      if (_text == "<") {
-        x = parent.getPosition().x;
+      if (left_or_right == "<") {
+        _text = "<";
+        x = parent.x;
       } else {
-        x = parent.getPosition().x + parent.getSize().x - parent.getSize().y;
+        _text = ">";
+        x = parent.x + parent._width - parent._height;
       }
-      return new PVector(x, parent.getPosition().y);
+      y = parent.y;
+      _width = parent._height;
+      _height = parent._height;
     }
-    PVector getSize() {
-      return new PVector(parent.getSize().y, parent.getSize().y);
-    }
+
     void onClick() {
-      ((Slider) parent).arrowClick(_text);
+      parent.arrowClick(_text);
     }
   }
   class Box extends Button {
-    color colorFocused;
+    Slider parent;
+    Color colorFocused;
     float hint_fontsize_ratio;
 
-    public Box() {
-      _size.x = 100;
+    public Box(Slider parent) {
+      this.parent = parent;
+      _width = 100;
       fontsize = 30;
       fore = #FFFFFF;
       back = #000000;
@@ -243,20 +237,14 @@ class Slider extends KeyboardListener {
       colorFocused = #0000cc;
       hint_fontsize_ratio = .6;
     }
-    PVector getPosition() {
-      return new PVector(((Slider) parent).boxX(), parent.getPosition().y);
-    }
-    PVector getSize() {
-      return new PVector(_size.x, parent.getSize().y);
-    }
     void onPress() {
-      if (((Slider) parent).hasFocus()) return;
+      if (parent.hasFocus()) return;
       clicked_or_dragged = true;
     }
-    void onDrag(float delta_x, float delta_y) {
+    void onDrag(int delta_x, int delta_y) {
       if (hasFocus()) return;
       clicked_or_dragged = false;
-      value += delta_x / ((Slider) parent).slideSpace() * (_max - _min);
+      value += (float)delta_x / slideSpace() * (_max - _min);
       legalizeValue();
     }
     void onRelease() {
@@ -273,8 +261,9 @@ class Slider extends KeyboardListener {
       }
     }
     void draw() {
+      x = parent.boxX();
       strokeWeight(2);
-      if (((Slider) parent).hasFocus()) {
+      if (parent.hasFocus()) {
         fill(colorFocused);
         stroke(fore);
       } else if (beingDragged()) {
@@ -287,12 +276,12 @@ class Slider extends KeyboardListener {
         fill(back);
         stroke(fore);
       }
-      rect(getPosition().x, getPosition().y, getSize().x, getSize().y);
+      rect(x, parent.y, _width, parent._height);
       fill(g.strokeColor);
       textSize(fontsize);
       textAlign(CENTER, CENTER);
       String to_draw;
-      if (((Slider) parent).hasFocus()) {
+      if (parent.hasFocus()) {
         if (input_value.length() == 0) {
           to_draw = "Type!";
           textSize(fontsize * hint_fontsize_ratio);
@@ -300,25 +289,28 @@ class Slider extends KeyboardListener {
           to_draw = input_value;
         }
       } else {
-        to_draw = String.valueOf(((Slider) parent).getValue());
+        to_draw = String.valueOf(parent.getValue());
       }
-      text(to_draw, getPosition().x, getPosition().y - fontsize/8, getSize().x, getSize().y);
+      text(to_draw, x, parent.y - fontsize/8, _width, parent._height);
     }
   }
   class Rail extends Layer {
     color stroke_color;
     int thick;
-    Rail() {
+    Slider parent;
+    Rail(Slider parent) {
+      this.parent = parent;
       stroke_color = #FFFFFF;
-      thick = 2;
+      thich = 2;
     }
     void draw() {
       stroke(stroke_color);
       strokeWeight(thick);
-      line(parent.getPosition().x + parent.getSize().y, parent.getPosition().y + parent.getSize().y/2, 
-        parent.getPosition().x + parent.getSize().x - parent.getSize().y, parent.getPosition().y + parent.getSize().y/2);
+      line(parent.x + parent._height, parent.y + parent._height/2, 
+        parent.x + parent._width - parent._height, parent.y + parent._height/2);
     }
   }
+  private int x, y, _width, _height;
   int _min, _max;
   private float value;
   Arrow leftArrow, rightArrow;
@@ -327,21 +319,22 @@ class Slider extends KeyboardListener {
   private boolean clicked_or_dragged;
   private String input_value;
 
-  public Slider(float x, float y, float _width, float _height) {
-    this.position = new PVector(x, y);
-    this._size = new PVector(_width, _height);
+  public Slider(int x, int y, int _width, int _height) {
+    this.x = x;
+    this.y = y;
+    this._width = _width;
+    this._height = _height;
     _min = 0; 
     _max = 100;
     value = _max;
-    leftArrow = new Arrow("<");
-    rightArrow = new Arrow(">");
-    box = new Box();
+    leftArrow = new Arrow(this, "<");
+    rightArrow = new Arrow(this, ">");
+    box = new Box(this);
     rail = new Rail();
-    this.add(rail);
-    this.add(box);
-    this.add(leftArrow);
-    this.add(rightArrow);
-    do_transfrom = false;
+    this.children.add(rail);
+    this.children.add(box);
+    this.children.add(leftArrow);
+    this.children.add(rightArrow);
   }
 
   void setValue(int new_value) {
@@ -367,8 +360,8 @@ class Slider extends KeyboardListener {
     if (value > _max) value = _max;
   }
 
-  private float slideSpace() {
-    return getSize().x - 2*getSize().y - box.getSize().x;
+  private int slideSpace() {
+    return _width - 2*_height - box._width;
   }
 
   int getValue() {
@@ -401,9 +394,9 @@ class Slider extends KeyboardListener {
     ; // event. To override.
   }
 
-  private float boxX() {
+  private int boxX() {
     float proportion = ((float)(value - _min)) 
       / (_max - _min);
-    return int(slideSpace() * proportion) + getPosition().x + getSize().y;
+    return int(slideSpace() * proportion) + x + _height;
   }
 }
