@@ -49,6 +49,7 @@ class Layer extends ArrayList<Layer> {
       }
     }
   }
+  void onLeave() { }
 }
 
 class Pressable extends Layer {
@@ -196,6 +197,8 @@ class Director {
     root.draw();
   }
   void enterScene(Layer scene) {
+    if (root == scene) return;
+    root.onLeave();
     root = scene;
     surface.setTitle(scene.title);
   }
