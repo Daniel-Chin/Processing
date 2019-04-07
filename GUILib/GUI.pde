@@ -165,16 +165,17 @@ class Director {
         done();
         return false;
       }
+      float t = (1f - cos(progress * PI)) / 2f;
       Button button = stackButton.peek();
       PVector position = button.position;
       PVector _size = button._size;
       strokeWeight(3);
       noFill();
       rect(
-        progress * position.x, 
-        progress * position.y, 
-        progress * _size.x + (1f - progress) * width, 
-        progress * _size.y + (1f - progress) * height
+        t * position.x, 
+        t * position.y, 
+        t * _size.x + (1f - t) * width, 
+        t * _size.y + (1f - t) * height
       );
       return true;
     }
@@ -212,8 +213,10 @@ class Button extends Pressable {
   int fontsize;
   color back;
   color fore;
+  color colorBorder;
   color highlight;
   int press_sink_depth;
+  int corner_smooth;
   private boolean floating;
   private float float_progress;
 
@@ -224,8 +227,10 @@ class Button extends Pressable {
     fontsize = 30;
     back = #000000;
     fore = #FFFFFF;
+    colorBorder = fore;
     highlight = #005555;
     press_sink_depth = 5;
+    corner_smooth = 12;
     floating = false;
   }
 
@@ -234,8 +239,6 @@ class Button extends Pressable {
   }
 
   void draw() {
-    stroke(fore);
-    strokeWeight(2);
     if (isMouseOver()) {
       fill(highlight);
     } else {
@@ -243,7 +246,7 @@ class Button extends Pressable {
     }
     pushMatrix();
     if (beingDragged()) {
-      translate(press_sink_depth, press_sink_depth);
+      translate(0, press_sink_depth);
       floating = true;
       float_progress = press_sink_depth;
     } else {
@@ -252,11 +255,13 @@ class Button extends Pressable {
         if (float_progress < 1) {
           floating = false;
         } else {
-          translate(float_progress, float_progress);
+          translate(0, float_progress);
         }
       }
     }
-    rect(getPosition().x, getPosition().y, getSize().x, getSize().y);
+    stroke(colorBorder);
+    strokeWeight(2);
+    rect(getPosition().x, getPosition().y, getSize().x, getSize().y, corner_smooth);
     textSize(fontsize);
     fill(fore);
     textAlign(CENTER, CENTER);
@@ -271,9 +276,13 @@ class Button extends Pressable {
 }
 
 class Card extends Button {
-  Card() {}
   Card(String _text, float x, float y, float _width, float _height) {
     super(_text, x, y, _width, _height);
+    colorBorder = #555555;
+    corner_smooth = 0;
+  }
+  Card() {
+    this("", 0f, 0f, 100f, 100f);
   }
   boolean isMouseOver() {
     return false;
@@ -359,7 +368,7 @@ class Slider extends KeyboardListener {
         fill(back);
         stroke(fore);
       }
-      rect(getPosition().x, getPosition().y, getSize().x, getSize().y);
+      rect(getPosition().x, getPosition().y, getSize().x, getSize().y, corner_smooth);
       fill(g.strokeColor);
       textSize(fontsize);
       textAlign(CENTER, CENTER);
