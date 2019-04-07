@@ -1,14 +1,15 @@
 // Demo
 class NextSceneButton extends Button {
   public NextSceneButton() {
-    position=new PVector(150, 400);
+    position=new PVector(30, 100);
     _size.x = 200;
     _text = "next scene";
   }
 
   void onClick() {
     println("click");
-    GUIGlobal.root = scene2;
+    director.push(this);
+    director.enterScene(new Scene2());
   }
 
   void onPress() {
@@ -45,7 +46,8 @@ class BackButton extends Button {
     super("back", 50f, 50f, 100f, 100f);
   }
   void onClick() {
-    GUIGlobal.root = scene1;
+    director.pop();
+    director.enterScene(scene1);
   }
 }
 
@@ -58,15 +60,23 @@ class ToggleButton extends Button {
   }
 }
 
+class Scene2 extends Layer {
+  Scene2() {
+    super();
+    title = "scene 2 with no purpose";
+    Button b3 = new BackButton();
+    add(b3);
+  }
+}
+
 Scene1 scene1;
 Layer subLayer1;
-Layer scene2;
 
 void setup() {
   size(500, 500);
   scene1 = new Scene1();
   scene1.title = "scene 1";
-  GUIGlobal.root = scene1;
+  director.enterScene(scene1);
   scene1.button = new ToggleButton();
   scene1.add(scene1.button);
   subLayer1 = new Layer();
@@ -76,15 +86,9 @@ void setup() {
   DemoSlider slider = new DemoSlider();
   subLayer1.add(slider);
   subLayer1.add(new Card("display", 300f, 200f, 150f, 60f));
-
-  scene2 = new Layer();
-  scene2.title = "scene 2 with no purpose";
-  Button b3 = new BackButton();
-  scene2.add(b3);
 }
 
 void draw() {
   background(100);
-  GUIGlobal.root.draw();
-
+  director.render();
 }

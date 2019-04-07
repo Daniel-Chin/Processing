@@ -1,9 +1,6 @@
-static class GUIGlobal {
-  static Layer root;
-  static Pressable dragging;
-  static PVector lastDrag;
-  static KeyboardListener focusing;
-}
+import java.util.Stack;
+
+Director director = new Director();
 
 class Layer extends ArrayList<Layer> {
   // so that you can group components. 
@@ -14,6 +11,7 @@ class Layer extends ArrayList<Layer> {
   public String title = null;
 
   public Layer() {
+    super();
     visibility = true;
     position = new PVector(0f, 0f);
     _size = new PVector(1f, 1f);
@@ -50,25 +48,19 @@ class Layer extends ArrayList<Layer> {
         child.draw();
       }
     }
-    if (GUIGlobal.root == this) {
-      if (title == null) {
-        title = "Untitled";
-      }
-      surface.setTitle(title);
-    }
   }
 }
 
 class Pressable extends Layer {
   void hide() {
     super.hide();
-    if (GUIGlobal.dragging == this) {
+    if (director.dragging == this) {
       onRelease();
-      GUIGlobal.dragging = null;
+      director.dragging = null;
     }
   }
   boolean beingDragged() {
-    return GUIGlobal.dragging == this;
+    return director.dragging == this;
   }
   boolean isMouseOver() {
     return false;   // to override
@@ -84,7 +76,7 @@ class Pressable extends Layer {
 }
 
 void mousePressed() {
-  handleMousePress(GUIGlobal.root);
+  handleMousePress(director.root);
 }
 
 void handleMousePress(Layer layer) {  // recursively broadcast event
@@ -93,8 +85,8 @@ void handleMousePress(Layer layer) {  // recursively broadcast event
       if (child instanceof Pressable) {
         if (((Pressable) child).isMouseOver()) {
           ((Pressable) child).onPress();
-          GUIGlobal.dragging = (Pressable) child;
-          GUIGlobal.lastDrag = new PVector(mouseX, mouseY);
+          director.dragging = (Pressable) child;
+          director.lastDrag = new PVector(mouseX, mouseY);
           break;
         }
       } else {
@@ -105,46 +97,111 @@ void handleMousePress(Layer layer) {  // recursively broadcast event
 }
 
 void mouseDragged() {
-  if (GUIGlobal.dragging != null) {
-    GUIGlobal.dragging.onDrag(
-      mouseX - GUIGlobal.lastDrag.x, 
-      mouseY - GUIGlobal.lastDrag.y);
-    GUIGlobal.lastDrag = new PVector(mouseX, mouseY);
+  if (director.dragging != null) {
+    director.dragging.onDrag(
+      mouseX - director.lastDrag.x, 
+      mouseY - director.lastDrag.y);
+    director.lastDrag = new PVector(mouseX, mouseY);
   }
 }
 
 void mouseReleased() {
-  if (GUIGlobal.dragging != null) {
-    GUIGlobal.dragging.onRelease();
-    if (GUIGlobal.dragging.isMouseOver()) {
-      GUIGlobal.dragging.onClick();
+  if (director.dragging != null) {
+    director.dragging.onRelease();
+    if (director.dragging.isMouseOver()) {
+      director.dragging.onClick();
     }
-    GUIGlobal.dragging = null;
+    director.dragging = null;
   }
 }
 
 class KeyboardListener extends Layer {
   void focus() {
-    GUIGlobal.focusing = this;
+    director.focusing = this;
   }
   void unfocus() {
-    GUIGlobal.focusing = null;
+    director.focusing = null;
   }
   boolean hasFocus() {
-    return GUIGlobal.focusing == this;
+    return director.focusing == this;
   }
   void hide() {
     super.hide();
-    if (GUIGlobal.focusing == this) {
-      GUIGlobal.focusing = null;
+    if (director.focusing == this) {
+      director.focusing = null;
     }
   }
   void onKeypress(int key_code) {}
 }
 
 void keyPressed() {
-  if (GUIGlobal.focusing != null) {
-    GUIGlobal.focusing.onKeypress(keyCode);
+  if (director.focusing != null) {
+    director.focusing.onKeypress(keyCode);
+  }
+}
+
+class Director {
+  class SceneTransitionManager {
+    static final float SPEED = .1f;
+    Stack<Button> stack = new Stack<Button>();
+    float progress;
+    float push_or_pop = 0f;
+    void push(Button button) {
+      stack.push(button);
+      progress = 1f;
+      push_or_pop = - SPEED;
+    }
+    void pop() {
+      progress = 0f;
+      push_or_pop = SPEED;
+    }
+    boolean render() {
+      if (push_or_pop == 0f) return false;
+      progress += push_or_pop;
+      if (progress >= 1f || progress < 0f) {
+        done();
+        return false;
+      }
+      Button button = stack.peek();
+      PVector position = button.position;
+      PVector _size = button._size;
+      strokeWeight(3);
+      noFill();
+      rect(
+        progress * position.x, 
+        progress * position.y, 
+        progress * _size.x + (1f - progress) * width, 
+        progress * _size.y + (1f - progress) * height
+      );
+      return true;
+    }
+    void done() {
+      if (push_or_pop == SPEED) {
+        stack.pop();
+      }
+      push_or_pop = 0f;
+    }
+  }
+  Layer root;
+  SceneTransitionManager transitionManager = new SceneTransitionManager();
+  Pressable dragging = null;
+  PVector lastDrag;
+  KeyboardListener focusing = null;
+  void render() {
+    if (transitionManager.render()) return;
+    root.draw();
+  }
+  void enterScene(Layer scene) {
+    root = scene;
+    surface.setTitle(scene.title);
+  }
+  void push(Button button) {
+    transitionManager.push(button);
+    root = null;
+  }
+  void pop() {
+    transitionManager.pop();
+    root = null;
   }
 }
 
