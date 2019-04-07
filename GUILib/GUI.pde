@@ -142,18 +142,21 @@ void keyPressed() {
 
 class Director {
   class SceneTransitionManager {
-    static final float SPEED = .1f;
-    Stack<Button> stack = new Stack<Button>();
+    static final float SPEED = .15f;
+    Stack<Button> stackButton = new Stack<Button>();
+    Stack<Layer> stackScene = new Stack<Layer>();
     float progress;
     float push_or_pop = 0f;
-    void push(Button button) {
-      stack.push(button);
+    void push(Button button, Layer scene) {
+      stackButton.push(button);
+      stackScene.push(scene);
       progress = 1f;
       push_or_pop = - SPEED;
     }
-    void pop() {
+    Layer pop() {
       progress = 0f;
       push_or_pop = SPEED;
+      return stackScene.pop();
     }
     boolean render() {
       if (push_or_pop == 0f) return false;
@@ -162,7 +165,7 @@ class Director {
         done();
         return false;
       }
-      Button button = stack.peek();
+      Button button = stackButton.peek();
       PVector position = button.position;
       PVector _size = button._size;
       strokeWeight(3);
@@ -177,7 +180,7 @@ class Director {
     }
     void done() {
       if (push_or_pop == SPEED) {
-        stack.pop();
+        stackButton.pop();
       }
       push_or_pop = 0f;
     }
@@ -195,13 +198,12 @@ class Director {
     root = scene;
     surface.setTitle(scene.title);
   }
-  void push(Button button) {
-    transitionManager.push(button);
-    root = null;
+  void push(Button button, Layer scene) {
+    transitionManager.push(button, root);
+    enterScene(scene);
   }
   void pop() {
-    transitionManager.pop();
-    root = null;
+    enterScene(transitionManager.pop());
   }
 }
 

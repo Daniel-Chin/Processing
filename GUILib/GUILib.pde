@@ -8,8 +8,7 @@ class NextSceneButton extends Button {
 
   void onClick() {
     println("click");
-    director.push(this);
-    director.enterScene(new Scene2());
+    director.push(this, new Scene2());
   }
 
   void onPress() {
@@ -47,7 +46,6 @@ class BackButton extends Button {
   }
   void onClick() {
     director.pop();
-    director.enterScene(scene1);
   }
 }
 
