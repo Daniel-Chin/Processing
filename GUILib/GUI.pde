@@ -49,6 +49,7 @@ class Layer extends ArrayList<Layer> {
       }
     }
   }
+  void onEnter() { }
   void onLeave() { }
 }
 
@@ -201,6 +202,7 @@ class Director {
     root.onLeave();
     root = scene;
     surface.setTitle(scene.title);
+    scene.onEnter();
   }
   void push(Button button, Layer scene) {
     transitionManager.push(button, root);
