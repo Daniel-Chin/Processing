@@ -199,7 +199,9 @@ class Director {
   }
   void enterScene(Layer scene) {
     if (root == scene) return;
-    root.onLeave();
+    if (root != null) {
+      root.onLeave();
+    }
     root = scene;
     surface.setTitle(scene.title);
     scene.onEnter();
