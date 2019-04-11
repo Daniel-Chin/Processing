@@ -297,6 +297,7 @@ class Card extends Button {
 }
 
 class Slider extends KeyboardListener {
+  static final ON_CHANGE_WHEN_DRAGGING = false;
   class Arrow extends Button {
     public Arrow(String _text) {
       this._text = _text;
@@ -346,6 +347,9 @@ class Slider extends KeyboardListener {
       clicked_or_dragged = false;
       value += delta_x / ((Slider) parent).slideSpace() * (_max - _min);
       legalizeValue();
+      if (ON_CHANGE_WHEN_DRAGGING) {
+        onChange();
+      }
     }
     void onRelease() {
       if (hasFocus()) return;
