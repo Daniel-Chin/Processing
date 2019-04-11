@@ -297,7 +297,7 @@ class Card extends Button {
 }
 
 class Slider extends KeyboardListener {
-  static final ON_CHANGE_WHEN_DRAGGING = false;
+  static final boolean ON_CHANGE_WHEN_DRAGGING = false;
   class Arrow extends Button {
     public Arrow(String _text) {
       this._text = _text;
