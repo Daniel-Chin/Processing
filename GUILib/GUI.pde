@@ -412,7 +412,7 @@ class Slider extends KeyboardListener {
     }
   }
   int _min, _max;
-  private float value;
+  float value;
   Arrow leftArrow, rightArrow;
   Box box;
   Rail rail;
