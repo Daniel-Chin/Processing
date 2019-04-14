@@ -144,7 +144,7 @@ void keyPressed() {
 
 class Director {
   class SceneTransitionManager {
-    static final float SPEED = .15f;
+    float speed = .15f;
     Stack<Button> stackButton = new Stack<Button>();
     Stack<Layer> stackScene = new Stack<Layer>();
     float progress;
@@ -153,11 +153,11 @@ class Director {
       stackButton.push(button);
       stackScene.push(scene);
       progress = 1f;
-      push_or_pop = - SPEED;
+      push_or_pop = - speed;
     }
     Layer pop() {
       progress = 0f;
-      push_or_pop = SPEED;
+      push_or_pop = speed;
       return stackScene.pop();
     }
     boolean render() {
@@ -182,7 +182,7 @@ class Director {
       return true;
     }
     void done() {
-      if (push_or_pop == SPEED) {
+      if (push_or_pop == speed) {
         stackButton.pop();
       }
       push_or_pop = 0f;
@@ -297,7 +297,7 @@ class Card extends Button {
 }
 
 class Slider extends KeyboardListener {
-  static final boolean ON_CHANGE_WHEN_DRAGGING = false;
+  boolean on_change_when_dragging = false;
   class Arrow extends Button {
     public Arrow(String _text) {
       this._text = _text;
@@ -347,7 +347,7 @@ class Slider extends KeyboardListener {
       clicked_or_dragged = false;
       value += delta_x / ((Slider) parent).slideSpace() * (_max - _min);
       legalizeValue();
-      if (ON_CHANGE_WHEN_DRAGGING) {
+      if (on_change_when_dragging) {
         onChange();
       }
     }
