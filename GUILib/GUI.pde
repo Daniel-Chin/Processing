@@ -384,7 +384,7 @@ class Slider extends KeyboardListener {
           to_draw = input_value;
         }
       } else {
-        to_draw = String.valueOf(((Slider) parent).getValue());
+        to_draw = value2Text(((Slider) parent).getValue());
       }
       text(to_draw, getPosition().x, getPosition().y - fontsize/8, getSize().x, getSize().y);
     }
@@ -488,5 +488,9 @@ class Slider extends KeyboardListener {
     float proportion = ((float)(value - _min)) 
       / (_max - _min);
     return int(slideSpace() * proportion) + getPosition().x + getSize().y;
+  }
+
+  String value2Text(int value) {
+    return String.valueOf(value);
   }
 }
