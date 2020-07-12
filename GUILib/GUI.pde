@@ -196,6 +196,8 @@ class Director {
   color themeBack = #000000;
   color themeFore = #ffffff;
   color themeHighlight = #005555;
+  color themeHighlightInvert = #00cccc;
+  color themeWeak = #555555;
   void render() {
     if (transitionManager.render()) return;
     root.draw();
@@ -288,7 +290,7 @@ class Button extends Pressable {
 class Card extends Button {
   Card(String _text, float x, float y, float _width, float _height) {
     super(_text, x, y, _width, _height);
-    colorBorder = #555555;
+    colorBorder = director.themeWeak;
     corner_smooth = 0;
   }
   Card() {
@@ -331,8 +333,8 @@ class Slider extends KeyboardListener {
       fontsize = 30;
       fore = director.themeFore;
       back = director.themeBack;
-      highlight = #005555;
-      colorFocused = #0000cc;
+      highlight = director.themeHighlight;
+      colorFocused = director.themeHighlightInvert;
       hint_fontsize_ratio = .6;
     }
     PVector getPosition() {
@@ -383,7 +385,7 @@ class Slider extends KeyboardListener {
         stroke(fore);
       }
       rect(getPosition().x, getPosition().y, getSize().x, getSize().y, corner_smooth);
-      fill(director.themeFore);
+      fill(fore);
       textSize(fontsize);
       textAlign(CENTER, CENTER);
       String to_draw;
@@ -396,6 +398,9 @@ class Slider extends KeyboardListener {
         }
       } else {
         to_draw = value2Text(((Slider) parent).getValue());
+      }
+      if (beingDragged()) {
+        fill(back);
       }
       text(to_draw, getPosition().x, getPosition().y - fontsize/8, getSize().x, getSize().y);
     }
