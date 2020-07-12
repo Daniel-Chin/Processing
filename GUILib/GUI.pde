@@ -232,8 +232,8 @@ class Button extends Pressable {
     this.position = new PVector(x, y);
     this._size = new PVector(_width, _height);
     fontsize = 30;
-    back = #000000;
-    fore = #FFFFFF;
+    back = g.fillColor;
+    fore = g.strokeColor;
     colorBorder = fore;
     highlight = #005555;
     press_sink_depth = 5;
@@ -326,8 +326,8 @@ class Slider extends KeyboardListener {
     public Box() {
       _size.x = 100;
       fontsize = 30;
-      fore = #FFFFFF;
-      back = #000000;
+      fore = g.strokeColor;
+      back = g.fillColor;
       highlight = #005555;
       colorFocused = #0000cc;
       hint_fontsize_ratio = .6;
@@ -401,7 +401,7 @@ class Slider extends KeyboardListener {
     color stroke_color;
     int thick;
     Rail() {
-      stroke_color = #FFFFFF;
+      stroke_color = g.strokeColor;
       thick = 2;
     }
     void draw() {
