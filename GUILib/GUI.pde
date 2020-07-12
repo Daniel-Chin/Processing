@@ -371,12 +371,15 @@ class Slider extends KeyboardListener {
     }
     void draw() {
       strokeWeight(2);
+      boolean text_invert = false;
       if (((Slider) parent).hasFocus()) {
         fill(colorFocused);
         stroke(fore);
+        text_invert = true;
       } else if (beingDragged()) {
         fill(fore);
         stroke(back);
+        text_invert = true;
       } else if (isMouseOver()) {
         fill(highlight);
         stroke(fore);
@@ -385,7 +388,11 @@ class Slider extends KeyboardListener {
         stroke(fore);
       }
       rect(getPosition().x, getPosition().y, getSize().x, getSize().y, corner_smooth);
-      fill(fore);
+      if (text_invert) {
+        fill(back);
+      } else {
+        fill(fore);
+      }
       textSize(fontsize);
       textAlign(CENTER, CENTER);
       String to_draw;
@@ -398,9 +405,6 @@ class Slider extends KeyboardListener {
         }
       } else {
         to_draw = value2Text(((Slider) parent).getValue());
-      }
-      if (beingDragged()) {
-        fill(back);
       }
       text(to_draw, getPosition().x, getPosition().y - fontsize/8, getSize().x, getSize().y);
     }
