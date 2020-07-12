@@ -87,8 +87,6 @@ void setup() {
 }
 
 void draw() {
-  background(255);
-  fill(255);
-  stroke(0);
+  background(0);
   director.render();
 }

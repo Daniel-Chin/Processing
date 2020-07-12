@@ -193,6 +193,9 @@ class Director {
   Pressable dragging = null;
   PVector lastDrag;
   KeyboardListener focusing = null;
+  color themeBack = #000000;
+  color themeFore = #ffffff;
+  color themeHighlight = #005555;
   void render() {
     if (transitionManager.render()) return;
     root.draw();
@@ -232,10 +235,10 @@ class Button extends Pressable {
     this.position = new PVector(x, y);
     this._size = new PVector(_width, _height);
     fontsize = 30;
-    back = g.fillColor;
-    fore = g.strokeColor;
+    back = director.themeBack;
+    fore = director.themeFore;
     colorBorder = fore;
-    highlight = #005555;
+    highlight = director.themeHighlight;
     press_sink_depth = 5;
     corner_smooth = 12;
     floating = false;
@@ -326,8 +329,8 @@ class Slider extends KeyboardListener {
     public Box() {
       _size.x = 100;
       fontsize = 30;
-      fore = g.strokeColor;
-      back = g.fillColor;
+      fore = director.themeFore;
+      back = director.themeBack;
       highlight = #005555;
       colorFocused = #0000cc;
       hint_fontsize_ratio = .6;
@@ -380,7 +383,7 @@ class Slider extends KeyboardListener {
         stroke(fore);
       }
       rect(getPosition().x, getPosition().y, getSize().x, getSize().y, corner_smooth);
-      fill(g.strokeColor);
+      fill(director.themeFore);
       textSize(fontsize);
       textAlign(CENTER, CENTER);
       String to_draw;
@@ -401,7 +404,7 @@ class Slider extends KeyboardListener {
     color stroke_color;
     int thick;
     Rail() {
-      stroke_color = g.strokeColor;
+      stroke_color = director.themeFore;
       thick = 2;
     }
     void draw() {
