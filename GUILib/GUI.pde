@@ -136,7 +136,7 @@ class KeyboardListener extends Layer {
   void onKeypress(int key_code) {}
 }
 
-void keyPressed() {
+void guiKeyPressed() {
   if (director.focusing != null) {
     director.focusing.onKeypress(keyCode);
   }

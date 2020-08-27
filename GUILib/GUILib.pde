@@ -90,3 +90,7 @@ void draw() {
   background(0);
   director.render();
 }
+
+void keyPressed() {
+  guiKeyPressed();
+}
