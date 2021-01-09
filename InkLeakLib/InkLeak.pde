@@ -67,7 +67,7 @@ class Node {
       PVector.fromAngle(this.angle).dot(perpendi)
       * PVector.fromAngle(that.angle).dot(perpendi)
       < 0
-      ) {
+    ) {
       this.angle += PI;
     }
   }
