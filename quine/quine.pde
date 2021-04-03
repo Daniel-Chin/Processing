@@ -98,12 +98,12 @@ void drawTopBar() {
 class TextBox {
   static final int VIEWPORT_N_LINES = 14;
   static final int LINE_HEIGHT = 35;
-  static final int WIDTH = 934;
+  static final int WIDTH = 920;
   static final int HEIGHT = 476;
   static final int TEXT_SIZE = 27;
   float CHAR_WIDTH = TEXT_SIZE * .6;
   static final int CURSOR_BLINK_INTERVAL = 500;
-  static final int SCROLLBAR_WIDTH = 70;
+  static final int SCROLLBAR_WIDTH = 24;
 
   Line[] lines;
   int viewport_line = 0;
@@ -193,21 +193,26 @@ class TextBox {
   void draw() {
     int rel_sel_line = sel_end_line - viewport_line;
 
-    // current line highlight
-    if (! isSelectingMulti()) {
-      fill(235, 255, 253);
+    if (
+      0 <= rel_sel_line 
+      && rel_sel_line < VIEWPORT_N_LINES
+    ) {
+      // line number highlight
+      fill(88, 116, 120);
       rect(
         0, LINE_HEIGHT * rel_sel_line, 
-        WIDTH, LINE_HEIGHT
+        -100, LINE_HEIGHT
       );
-    }
 
-    // line number highlight
-    fill(88, 116, 120);
-    rect(
-      0, LINE_HEIGHT * rel_sel_line, 
-      -100, LINE_HEIGHT
-    );
+      // current line highlight
+      if (! isSelectingMulti()) {
+        fill(235, 255, 253);
+        rect(
+          0, LINE_HEIGHT * rel_sel_line, 
+          WIDTH, LINE_HEIGHT
+        );
+      }
+    }
 
     // line numbers
     fill(187, 214, 213);
@@ -331,6 +336,7 @@ class TextBox {
         noStroke();
       }
     popMatrix();
+    drawScrollBar();
   }
 
   int[] parseMouse() {
@@ -360,13 +366,72 @@ class TextBox {
       }
     }
   }
+
+  int click_scroll_button_cooldown = 0;
+  void drawScrollBar() {
+    pushMatrix();
+      translate(WIDTH, 0);
+      fill(240);
+      rect(0, 0, SCROLLBAR_WIDTH, HEIGHT);
+      for (int i = 0; i < 2; i ++) {
+        pushMatrix();
+          int y = i * (HEIGHT - SCROLLBAR_WIDTH);
+          translate(0, y);
+          if (inRect(
+            TEXTBOX_LEFT + textBox.WIDTH, 
+            TEXTBOX_TOP + y, 
+            SCROLLBAR_WIDTH, 
+            SCROLLBAR_WIDTH
+          )) {
+            fill(218);
+            rect(0, 0, SCROLLBAR_WIDTH, SCROLLBAR_WIDTH);
+            if (
+              click_scroll_button_cooldown < millis()
+              && mousePressed
+            ) {
+              textBox.viewport_line += round((i - .5) * 2);
+              textBox.viewport_line = constrain(
+                textBox.viewport_line, 
+                0, 
+                textBox.lines.length - 
+                textBox.VIEWPORT_N_LINES
+              );     
+              click_scroll_button_cooldown = millis() + 50;       
+            }
+          }
+          fill(96);
+          if (i == 1) {
+            translate(0, SCROLLBAR_WIDTH);
+            scale(1, -1);
+          }
+          int sw = SCROLLBAR_WIDTH;
+          translate(0, -.2 * sw);
+          beginShape();
+          vertex(sw * .5, sw * .5);
+          vertex(sw * .25, sw * .75);
+          vertex(sw * .25, sw * .9);
+          vertex(sw * .5, sw * .7);
+          vertex(sw * .75, sw * .9);
+          vertex(sw * .75, sw * .75);
+          endShape(CLOSE);
+        popMatrix();
+      }
+    popMatrix();
+  }
 }
 
+boolean inRect(int x1, int y1, int w, int h) {
+  return (
+    mouseX > x1 && mouseY > y1 && 
+    mouseX < x1 + w && mouseY < y1 + h
+  );
+}
 boolean inTextBox() {
-  return (mouseX > TEXTBOX_LEFT && mouseY > TEXTBOX_TOP
-    && mouseX < TEXTBOX_LEFT + 
-    TextBox.WIDTH - TextBox.SCROLLBAR_WIDTH
-    && mouseY < TEXTBOX_TOP + TextBox.HEIGHT
+  return inRect(
+    TEXTBOX_LEFT, 
+    TEXTBOX_TOP, 
+    TextBox.WIDTH, 
+    TextBox.HEIGHT
   );
 }
 
@@ -416,7 +481,7 @@ void handleSelectionScroll() {
       textBox.sel_end_line = constrain(
         textBox.sel_end_line, 
         0, 
-        textBox.lines.length - textBox.VIEWPORT_N_LINES
+        textBox.lines.length - 1
       );
       textBox.viewportFollowSelection();
       selection_scroll_cooldown = millis() + 30;
