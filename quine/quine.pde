@@ -22,7 +22,7 @@ void setup() {
     "sourcecodepro/SourceCodePro-Bold.ttf", 
     TextBox.TEXT_SIZE
   );
-  textBox = new TextBox(loadStrings("quine.pde"));
+  textBox = new TextBox(quine());
   noStroke();
   textAlign(LEFT, TOP);
 }
@@ -772,3 +772,34 @@ void keyPressed() {
     textBox.cursor_phase = millis();
   }
 }
+
+String[] quine() {
+  String[] result = new String[GOD.length * 2 + 3];
+  int line_i = 0;
+  while (line_i < GOD.length) {
+    result[line_i] = new String(GOD[line_i]);
+    line_i ++;
+  }
+  result[line_i] = "";
+  line_i ++;
+  result[line_i] = "char[][] GOD = {";
+  line_i ++;
+  for (int i = 0; i < GOD.length; i ++) {
+    StringBuilder line = new StringBuilder();
+    line.append("  {");
+    for (int j = 0; j < GOD[i].length; j ++) {
+      line.append(String.valueOf(GOD[i][j]));
+      line.append(", ");
+    }
+    line.append("}, ");
+    result[line_i] = line.toString();
+    line_i ++;
+  }
+  result[line_i] = "};";
+  return result;
+}
+
+char[][] GOD = {
+  {40, 40, }, 
+  {40, 40, }, 
+};
