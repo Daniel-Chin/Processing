@@ -472,7 +472,7 @@ class TextBox {
     // line numbers
     fill(187, 214, 213);
     textAlign(RIGHT, TOP);
-    textSize(17);
+    textFont(sourceCodePro, 17);
     for (int i = 0; i < VIEWPORT_N_LINES; i ++) {
       text(
         String.valueOf(viewport_line + i + 1), 
