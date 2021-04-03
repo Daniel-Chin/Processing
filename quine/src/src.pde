@@ -108,7 +108,7 @@ void drawBottomBar(float _height) {
   pushMatrix();
     translate(65, 0);
     fill(45, 66, 81);
-    rect(0, 0, 150, _height - 4);
+    rect(0, 0, 150, _height - 4, 0, 0, 0, 8);
 
     fill(224, 255, 253);
     rect(20, 10, 26, 20);
@@ -119,7 +119,7 @@ void drawBottomBar(float _height) {
 
     translate(153, 0);
     fill(31, 50, 65);
-    rect(0, 0, 134, _height - 4);
+    rect(0, 0, 134, _height - 4, 0, 0, 8, 0);
 
     fill(149, 173, 176);
     text("Errors", 60, 12);
@@ -177,7 +177,7 @@ void drawTopBar() {
   pushMatrix();
     translate(TEXTBOX_LEFT, TEXTBOX_TOP - 42);
     fill(224, 255, 253);
-    rect(0, 0, 100, 42);
+    rect(0, 0, 100, 42, 8, 0, 0, 0);
     fill(0);
     textFont(arialBold, 18);
     textAlign(CENTER);
@@ -186,7 +186,7 @@ void drawTopBar() {
 
     translate(100, 0);
     fill(45, 66, 81);
-    rect(0, 0, 33, 42);
+    rect(0, 0, 33, 42, 0, 8, 0, 0);
     fill(255);
     translate(19, 21);
     triangle(-5, -5, 5, -5, 0, 5);
