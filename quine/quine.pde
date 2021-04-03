@@ -8,6 +8,7 @@ static final int TEXTBOX_LEFT = 65;
 static final int TEXTBOX_TOP = 122;
 
 PFont sourceCodePro;
+PFont sourceCodeProBold;
 
 TextBox textBox;
 
@@ -15,6 +16,10 @@ void setup() {
   size(1030, 810);
   sourceCodePro = createFont(
     "sourcecodepro/SourceCodePro-Regular.ttf", 
+    TextBox.TEXT_SIZE
+  );
+  sourceCodeProBold = createFont(
+    "sourcecodepro/SourceCodePro-Bold.ttf", 
     TextBox.TEXT_SIZE
   );
   textBox = new TextBox(loadStrings("quine.pde"));
@@ -33,6 +38,12 @@ void draw() {
 
   handleSelectionScroll();
   handleScrollbarSeek();
+
+  if (inTextBox()) {
+    cursor(TEXT);
+  } else {
+    cursor(ARROW);
+  }
 }
 
 void drawBack() {
@@ -150,34 +161,186 @@ class TextBox {
       root = new Span();
       root.text = line_raw;
 
+      identifyComments();
       identifyStrings();
-      colorize("static",  51, 153, 126);
-      colorize("final",   51, 153, 126);
-      colorize("float",   226, 102, 26);
-      colorize("int",     226, 102, 26);
+      parseTokens();
+
+      colorize("static", 51, 153, 126);
+      colorize("final", 51, 153, 126);
+      colorize("import", 51, 153, 126);
+      colorize("void", 51, 153, 126);
+      colorize("class", 51, 153, 126);
+      colorize("null", 51, 153, 126);
+      colorize("true", 51, 153, 126);
+      colorize("false", 51, 153, 126);
+      colorize("assert", 51, 153, 126);
+      colorize("new", 51, 153, 126);
+      colorize("this", 51, 153, 126);
+      colorize("return", 51, 153, 126);
+      colorize("indexOf", 51, 153, 126);
+      colorize("continue", 51, 153, 126);
+      colorize("break", 51, 153, 126);
+      
+      colorize("float", 226, 102, 26);
+      colorize("int", 226, 102, 26);
+      colorize("PFont", 226, 102, 26);
+      colorize("boolean", 226, 102, 26);
+      colorize("color", 226, 102, 26);
+      colorize("String", 226, 102, 26);
+
+      colorize("setup", 0, 102, 153, true);
+      colorize("draw", 0, 102, 153, true);
+      colorize("mousePressed", 0, 102, 153, true);
+      colorize("mouseDragged", 0, 102, 153, true);
+      colorize("mouseReleased", 0, 102, 153, true);
+      colorize("mouseWheel", 0, 102, 153, true);
+
+      colorize("size", 0, 102, 153);
+      colorize("textAlign", 0, 102, 153);
+      colorize("pushMatrix", 0, 102, 153);
+      colorize("popMatrix", 0, 102, 153);
+      colorize("rect", 0, 102, 153);
+      colorize("ellipse", 0, 102, 153);
+      colorize("line", 0, 102, 153);
+      colorize("text", 0, 102, 153);
+      colorize("fill", 0, 102, 153);
+      colorize("noFill", 0, 102, 153);
+      colorize("stroke", 0, 102, 153);
+      colorize("noStroke", 0, 102, 153);
+      colorize("scale", 0, 102, 153);
+      colorize("translate", 0, 102, 153);
+      colorize("substring", 0, 102, 153);
+      colorize("char", 0, 102, 153);
+      colorize("length", 0, 102, 153);
+      colorize("charAt", 0, 102, 153);
+      colorize("equals", 0, 102, 153);
+      colorize("splitTokens", 0, 102, 153);
+      colorize("mix", 0, 102, 153);
+      colorize("max", 0, 102, 153);
+      colorize("constrain", 0, 102, 153);
+      colorize("textFont", 0, 102, 153);
+      colorize("textSize", 0, 102, 153);
+      colorize("millis", 0, 102, 153);
+      colorize("round", 0, 102, 153);
+      colorize("beginShape", 0, 102, 153);
+      colorize("vertex", 0, 102, 153);
+      colorize("endShape", 0, 102, 153);
+
+      colorize("LEFT", 113, 138, 98);
+      colorize("RIGHT", 113, 138, 98);
+      colorize("TOP", 113, 138, 98);
+      colorize("TEXT", 113, 138, 98);
+      colorize("ARROW", 113, 138, 98);
+      colorize("CLOSE", 113, 138, 98);
+      colorize("CODED", 113, 138, 98);
+      colorize("UP", 113, 138, 98);
+      colorize("DOWN", 113, 138, 98);
+
+      colorize("width", 217, 74, 122);
+      colorize("height", 217, 74, 122);
+      colorize("mouseX", 217, 74, 122);
+      colorize("mouseY", 217, 74, 122);
+      colorize("key", 217, 74, 122);
+      colorize("keyCode", 217, 74, 122);
+
+      colorize("for", 102, 153, 0);
+      colorize("if", 102, 153, 0);
+      colorize("else", 102, 153, 0);
+      colorize("while", 102, 153, 0);
+      colorize("switch", 102, 153, 0);
+    }
+
+    void identifyComments() {
+      int pos = root.text.indexOf("/" + "/");
+      if (pos == -1) {
+        return;
+      }
+      Span comment = root.splitAt(pos);
+      comment.c = color(102);
     }
 
     void identifyStrings() {
       Span cursor = root;
       int pos;
       Span willDo;
-      while (true) {
+      while (cursor != null) {
+        if (cursor.c != 0) {  // a string, or a comment
+          cursor = cursor.next;
+          continue;
+        }
         pos = cursor.text.indexOf(char(34));
         if (pos == -1) {
           break;
         }
         cursor = cursor.splitAt(pos);
 
-        pos = cursor.text.indexOf(char(34));
-        assert pos != -1;
+        pos = cursor.text.substring(1).indexOf(
+          char(34)
+        ) + 1;
+        assert pos != 0;
         willDo = cursor.splitAt(pos + 1);
         cursor.c = color(125, 71, 147);
         cursor = willDo;
       }
     }
 
-    void colorize(String keyword, int r, int g, int b) {
+    boolean isToken(char x) {
+      int ascii = int(x);
+      return x == '_' || (
+        (65 <= ascii && ascii < 91) || 
+        (97 <= ascii && ascii < 123)
+      );
+    }
 
+    void parseTokens() {
+      Span cursor = root;
+      while (cursor != null) {
+        if (cursor.c != 0) {  // a string, or a comment
+          cursor = cursor.next;
+          continue;
+        }
+        if (cursor.text.length() != 0) {
+          boolean is_token = isToken(cursor.text.charAt(0));
+          boolean did_split = false;
+          for (int i = 1; i < cursor.text.length(); i ++) {
+            if (is_token != isToken(cursor.text.charAt(i))) {
+              cursor = cursor.splitAt(i);
+              did_split = true;
+              break;
+            }
+          }
+          if (did_split) {
+            continue;
+          }
+        }
+        cursor = cursor.next;
+      }
+
+      // cursor = root;
+      // while (cursor != null) {
+      //   print(cursor.text);
+      //   print("|");
+      //   cursor = cursor.next;
+      // }
+      // println();
+    }
+
+    void colorize(String keyword, int r, int g, int b) {
+      colorize(keyword, r, g, b, false);
+    }
+    void colorize(String keyword, int r, int g, int b, boolean do_bold) {
+      Span cursor = root;
+      while (cursor != null) {
+        if (cursor.c != 0) {  // a string, or a comment
+          cursor = cursor.next;
+          continue;
+        }
+        if (cursor.text.equals(keyword)) {
+          cursor.c = color(r, g, b);
+          cursor.bold = do_bold;
+        }
+        cursor = cursor.next;
+      }
     }
   }
 
@@ -318,7 +481,11 @@ class TextBox {
             Line.Span span = lines[i].root;
             while (span != null) {
               fill(span.c);
+              if (span.bold) {
+                textFont(sourceCodeProBold);
+              }
               text(span.text, 0, 0);
+              textFont(sourceCodePro);
               translate(CHAR_WIDTH * span.text.length(), 0);
               span = span.next;
             }
@@ -390,7 +557,7 @@ class TextBox {
           int y = i * (HEIGHT - SCROLLBAR_WIDTH);
           translate(0, y);
           if (inRect(
-            TEXTBOX_LEFT + textBox.WIDTH, 
+            TEXTBOX_LEFT + TextBox.WIDTH, 
             TEXTBOX_TOP + y, 
             SCROLLBAR_WIDTH, 
             SCROLLBAR_WIDTH
@@ -481,10 +648,10 @@ boolean inTextBox() {
 }
 boolean inScrollBar() {
   return inRect(
-    TEXTBOX_LEFT + textBox.WIDTH, 
-    TEXTBOX_TOP + textBox.SCROLLBAR_WIDTH, 
-    textBox.SCROLLBAR_WIDTH, 
-    textBox.HEIGHT - 2 * textBox.SCROLLBAR_WIDTH
+    TEXTBOX_LEFT + TextBox.WIDTH, 
+    TEXTBOX_TOP + TextBox.SCROLLBAR_WIDTH, 
+    TextBox.SCROLLBAR_WIDTH, 
+    TextBox.HEIGHT - 2 * TextBox.SCROLLBAR_WIDTH
   );
 }
 
@@ -529,7 +696,7 @@ void handleSelectionScroll() {
   if (dragSelecting) {
     if (mouseY < TEXTBOX_TOP) {
       selection_scrolling = -1;
-    } else if (mouseY > TEXTBOX_TOP + textBox.HEIGHT) {
+    } else if (mouseY > TEXTBOX_TOP + TextBox.HEIGHT) {
       selection_scrolling = 1;
     } else {
       selection_scrolling = 0;
@@ -556,12 +723,12 @@ void mouseWheel(MouseEvent event) {
 void handleScrollbarSeek() {
   if (draggingScrollbar) {
     float progress = (mouseY - (
-      TEXTBOX_TOP + textBox.SCROLLBAR_WIDTH
+      TEXTBOX_TOP + TextBox.SCROLLBAR_WIDTH
     )) / float(
-      textBox.HEIGHT - 2 * textBox.SCROLLBAR_WIDTH
+      TextBox.HEIGHT - 2 * TextBox.SCROLLBAR_WIDTH
     );
     textBox.viewport_line = round(progress * (
-      textBox.lines.length - textBox.VIEWPORT_N_LINES
+      textBox.lines.length - TextBox.VIEWPORT_N_LINES
     ));
     textBox.normalizeViewport();
   }
@@ -584,10 +751,10 @@ void keyPressed() {
         textBox.sel_end_char += 1;
         break;
       case KeyEvent.VK_PAGE_UP:
-        textBox.sel_end_line -= textBox.VIEWPORT_N_LINES;
+        textBox.sel_end_line -= TextBox.VIEWPORT_N_LINES;
         break;
       case KeyEvent.VK_PAGE_DOWN:
-        textBox.sel_end_line += textBox.VIEWPORT_N_LINES;
+        textBox.sel_end_line += TextBox.VIEWPORT_N_LINES;
         break;
       case KeyEvent.VK_END:
         textBox.sel_end_char = 56;
