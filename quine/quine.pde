@@ -3,18 +3,31 @@ static final int[] C_TOP = {20, 42, 62};
 static final int[] C_MID = {2, 4, 7};
 static final float C_SMOOTH = .02;
 
+PFont sourceCodePro;
+
+TextBox textBox;
+
 void setup() {
   size(1030, 810);
+  sourceCodePro = createFont("sourcecodepro/SourceCodePro-Regular.ttf", TextBox.TEXT_SIZE);
+  textBox = new TextBox("static final float TEXT_BOX_H = .75f;\nstatic final int[] C_TOP = {20, 42, 62};\nstatic final int[] C_MID = {2, 4, 7};\nstatic final float C_SMOOTH = .02;");
+  noStroke();
+  textAlign(LEFT, TOP);
 }
 
 void draw() {
   drawBack();
+  drawTopBar();
+  pushMatrix();
+    translate(65, 122);
+    textBox.draw();
+  popMatrix();
+  drawLow();
 }
 
 void drawBack() {
   pushMatrix();
     scale(width, height * TEXT_BOX_H);
-    noStroke();
     float j;
     for (float i = 0; i < 1; i += C_SMOOTH) {
       j = 1 - i;
@@ -26,7 +39,9 @@ void drawBack() {
       rect(0f, i, 1f, C_SMOOTH);
     }
   popMatrix();
-  drawTopBar();
+}
+
+void drawLow() {
   pushMatrix();
     translate(0, TEXT_BOX_H * height);
     fill(0);
@@ -60,12 +75,12 @@ void drawTopBar() {
   stroke(58, 80, 94);
   noFill();
   rect(920, 17, 90, 46);
+  noStroke();
   fill(255);
   // textFont("arial", 18);
   // textSize(18);
   // text("Java", 940, 42);
   fill(224, 255, 253);
-  noStroke();
   rect(65, 80, 100, 42);
   fill(45, 66, 81);
   rect(165, 80, 33, 42);
@@ -74,6 +89,13 @@ void drawTopBar() {
 }
 
 class TextBox {
+  static final int VIEWPORT_N_LINES = 13;
+  static final int LINE_HEIGHT = 35;
+  static final int WIDTH = 934;
+  static final int TEXT_SIZE = 27;
+  static final int CHAR_WIDTH = TEXT_SIZE;
+  static final int CURSOR_BLINK_INTERVAL = 500;
+
   Line[] lines;
   int viewport_line = 0;
   int sel_start_line = 0;
@@ -81,13 +103,12 @@ class TextBox {
   boolean sel_multi = false;
   int sel_end_line;
   int sel_end_char;
-  float cursor_phase = 0f;
 
   class Line {
     Span root;
 
     class Span {
-      color c = null;
+      color c = 0;
       boolean bold = false;
       String text;
 
@@ -95,7 +116,7 @@ class TextBox {
       Span next = null;
 
       Span splitAt(int x) {
-        assert c == null;
+        assert c == 0;
         String left = text.substring(0, x);
         String right = text.substring(x);
         text = left;
@@ -112,7 +133,7 @@ class TextBox {
     }
 
     Line(String line_raw) {
-      root = Span();
+      root = new Span();
       root.text = line_raw;
 
       identifyStrings();
@@ -153,5 +174,127 @@ class TextBox {
     for (int i = 0; i < n_lines; i ++) {
       lines[i] = new Line(lines_raw[i]);
     }
+  }
+
+  void draw() {
+    int rel_sel_line = sel_start_line - viewport_line;
+
+    // current line highlight
+    if (! sel_multi) {
+      fill(235, 255, 253);
+      rect(
+        0, LINE_HEIGHT * rel_sel_line, 
+        WIDTH, LINE_HEIGHT
+      );
+    }
+
+    // line number highlight
+    fill(88, 116, 120);
+    rect(
+      0, LINE_HEIGHT * rel_sel_line, 
+      -100, LINE_HEIGHT
+    );
+
+    // line numbers
+    fill(187, 214, 213);
+    textAlign(RIGHT, TOP);
+    textSize(16);
+    for (int i = 0; i < VIEWPORT_N_LINES; i ++) {
+      text(
+        String.valueOf(viewport_line + i + 1), 
+        -6, LINE_HEIGHT * i
+      );
+    }
+    textAlign(LEFT, TOP);
+
+    // slight left padding
+    pushMatrix();
+      translate(6, 0);
+
+      // selection background
+      fill(255, 204, 0);
+      for (
+        int i = sel_start_line; i <= sel_end_line; i ++
+      ) {
+        if (i == sel_start_line) {
+          if (i == sel_end_line) {
+            // same line
+            rect(
+              CHAR_WIDTH * sel_start_char, 
+              LINE_HEIGHT * (i - viewport_line), 
+              CHAR_WIDTH * (sel_end_char - sel_start_char), 
+              LINE_HEIGHT
+            );
+          } else {
+            // just start
+            rect(
+              CHAR_WIDTH * sel_start_char, 
+              LINE_HEIGHT * (i - viewport_line), 
+              WIDTH - CHAR_WIDTH * sel_start_char, 
+              LINE_HEIGHT
+            );
+          }
+        } else {
+          if (i == sel_end_line) {
+            // just end
+            rect(
+              0, 
+              LINE_HEIGHT * (i - viewport_line), 
+              CHAR_WIDTH * sel_end_char, 
+              LINE_HEIGHT
+            );
+          } else {
+            // full line
+            rect(
+              0, 
+              LINE_HEIGHT * (i - viewport_line), 
+              WIDTH, 
+              LINE_HEIGHT
+            );
+          }
+        }
+      }
+
+      // text
+      pushMatrix();
+        textFont(sourceCodePro);
+        textSize(TEXT_SIZE);
+        for (
+          int i = viewport_line; 
+          i < viewport_line + VIEWPORT_N_LINES; 
+          i ++
+        ) {
+          if (i >= lines.length) {
+            break;
+          }
+          pushMatrix();
+            Line.Span span = lines[i].root;
+            while (span != null) {
+              fill(span.c);
+              text(span.text, 0, 0);
+              println(span.text);
+              translate(CHAR_WIDTH * span.text.length(), 0);
+              span = span.next;
+            }
+          popMatrix();
+          translate(0, LINE_HEIGHT);
+        }
+      popMatrix();
+
+      // cursor
+      if (
+        millis() % (CURSOR_BLINK_INTERVAL * 2) 
+        < CURSOR_BLINK_INTERVAL
+      ) {
+        stroke(0);
+        line(
+          CHAR_WIDTH * sel_start_char, 
+          LINE_HEIGHT * rel_sel_line, 
+          CHAR_WIDTH * sel_start_char, 
+          LINE_HEIGHT * (rel_sel_line + 1)
+        );
+        noStroke();
+      }
+    popMatrix();
   }
 }
