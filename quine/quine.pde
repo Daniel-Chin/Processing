@@ -1,3 +1,5 @@
+// cahnge to actual quine
+
 static final int[] C_TOP = {20, 42, 62};
 static final int[] C_MID = {2, 4, 7};
 static final float C_SMOOTH = .02;
@@ -11,7 +13,7 @@ TextBox textBox;
 void setup() {
   size(1030, 810);
   sourceCodePro = createFont("sourcecodepro/SourceCodePro-Regular.ttf", TextBox.TEXT_SIZE);
-  textBox = new TextBox("static final float H = .75f;\nstatic final int[] C_TOP = {20, 42, 62};\nstatic final int[] C_MID = {2, 4, 7};\nstatic final float C_SMOOTH = .02;");
+  textBox = new TextBox(loadStrings("quine.pde"));
   noStroke();
   textAlign(LEFT, TOP);
 }
@@ -24,6 +26,8 @@ void draw() {
     textBox.draw();
   popMatrix();
   drawLow();
+
+  handleSelectionScroll();
 }
 
 void drawBack() {
@@ -160,7 +164,7 @@ class TextBox {
 
         pos = cursor.text.indexOf(char(34));
         assert pos != -1;
-        willDo = cursor.splitAt(pos);
+        willDo = cursor.splitAt(pos + 1);
         cursor.c = color(125, 71, 147);
         cursor = willDo;
       }
@@ -171,8 +175,14 @@ class TextBox {
     }
   }
 
+  TextBox(String[] lines_raw) {
+    init(lines_raw);
+  }
   TextBox(String src) {
     String[] lines_raw = splitTokens(src, "\n");
+    init(lines_raw);
+  }
+  void init(String[] lines_raw) {
     int n_lines = lines_raw.length;
     lines = new Line[n_lines];
     for (int i = 0; i < n_lines; i ++) {
@@ -181,7 +191,7 @@ class TextBox {
   }
 
   void draw() {
-    int rel_sel_line = sel_start_line - viewport_line;
+    int rel_sel_line = sel_end_line - viewport_line;
 
     // current line highlight
     if (! isSelectingMulti()) {
@@ -236,7 +246,11 @@ class TextBox {
         upper_char = sel_end_char;
       }
       for (
-        int i = upper_line; i <= lower_line; i ++
+        int i = max(upper_line, viewport_line); 
+        i <= min(
+          lower_line, viewport_line + VIEWPORT_N_LINES
+        ); 
+        i ++
       ) {
         if (i == upper_line) {
           if (i == lower_line) {
@@ -310,9 +324,9 @@ class TextBox {
         stroke(0);
         line(
           CHAR_WIDTH * sel_end_char, 
-          LINE_HEIGHT * (sel_end_line - viewport_line), 
+          LINE_HEIGHT * (rel_sel_line), 
           CHAR_WIDTH * sel_end_char, 
-          LINE_HEIGHT * (sel_end_line - viewport_line + 1)
+          LINE_HEIGHT * (rel_sel_line + 1)
         );
         noStroke();
       }
@@ -324,7 +338,7 @@ class TextBox {
     int x = mouseX - TEXTBOX_LEFT - 6;
     int y = mouseY - TEXTBOX_TOP;
     results[0] = round(x / CHAR_WIDTH);
-    results[1] = y / LINE_HEIGHT;
+    results[1] = y / LINE_HEIGHT + viewport_line;
     return results;
   }
 
@@ -333,6 +347,18 @@ class TextBox {
       sel_start_line == sel_end_line 
       && sel_start_char == sel_end_char
     );
+  }
+
+  void viewportFollowSelection() {
+    int delta = sel_end_line - viewport_line;
+    if (delta < 0) {
+      viewport_line += delta;
+    } else {
+      delta -= (VIEWPORT_N_LINES - 2);
+      if (delta > 0) {
+        viewport_line += delta;
+      }
+    }
   }
 }
 
@@ -344,7 +370,7 @@ boolean inTextBox() {
   );
 }
 
-boolean selecting = false;
+boolean dragSelecting = false;
 void mousePressed() {
   if (inTextBox()) {
     int[] parsed = textBox.parseMouse();
@@ -352,18 +378,48 @@ void mousePressed() {
     textBox.sel_start_line = parsed[1];
     textBox.sel_end_char = parsed[0];
     textBox.sel_end_line = parsed[1];
-    selecting = true;
+    dragSelecting = true;
   }
 }
 
 void mouseDragged() {
-  if (selecting) {
+  if (dragSelecting) {
     if (inTextBox()) {
       int[] parsed = textBox.parseMouse();
       textBox.sel_end_char = parsed[0];
       textBox.sel_end_line = parsed[1];
-    } else {
+      textBox.viewportFollowSelection();
+    }
+  }
+}
 
+void mouseReleased() {
+  dragSelecting = false;
+  selection_scrolling = 0;
+}
+
+int selection_scroll_cooldown = 0;
+int selection_scrolling = 0;
+void handleSelectionScroll() {
+  if (dragSelecting) {
+    if (mouseY < TEXTBOX_TOP) {
+      selection_scrolling = -1;
+    } else if (mouseY > TEXTBOX_TOP + textBox.HEIGHT) {
+      selection_scrolling = 1;
+    } else {
+      selection_scrolling = 0;
+    }
+  }
+  if (selection_scroll_cooldown < millis()) {
+    if (selection_scrolling != 0) {
+      textBox.sel_end_line += selection_scrolling;
+      textBox.sel_end_line = constrain(
+        textBox.sel_end_line, 
+        0, 
+        textBox.lines.length - textBox.VIEWPORT_N_LINES
+      );
+      textBox.viewportFollowSelection();
+      selection_scroll_cooldown = millis() + 30;
     }
   }
 }
