@@ -12,7 +12,10 @@ TextBox textBox;
 
 void setup() {
   size(1030, 810);
-  sourceCodePro = createFont("sourcecodepro/SourceCodePro-Regular.ttf", TextBox.TEXT_SIZE);
+  sourceCodePro = createFont(
+    "sourcecodepro/SourceCodePro-Regular.ttf", 
+    TextBox.TEXT_SIZE
+  );
   textBox = new TextBox(loadStrings("quine.pde"));
   noStroke();
   textAlign(LEFT, TOP);
@@ -367,10 +370,16 @@ class TextBox {
     }
   }
 
+  static final int SCROLL_CHUNK_HEIGHT = 10;
+  int SCROLL_BAR_DOMAIN = (
+    HEIGHT - SCROLL_CHUNK_HEIGHT - 2 * SCROLLBAR_WIDTH
+  );
   int click_scroll_button_cooldown = 0;
   void drawScrollBar() {
     pushMatrix();
       translate(WIDTH, 0);
+
+      // buttons
       fill(240);
       rect(0, 0, SCROLLBAR_WIDTH, HEIGHT);
       for (int i = 0; i < 2; i ++) {
@@ -390,12 +399,7 @@ class TextBox {
               && mousePressed
             ) {
               textBox.viewport_line += round((i - .5) * 2);
-              textBox.viewport_line = constrain(
-                textBox.viewport_line, 
-                0, 
-                textBox.lines.length - 
-                textBox.VIEWPORT_N_LINES
-              );     
+              textBox.normalizeViewport();   
               click_scroll_button_cooldown = millis() + 50;       
             }
           }
@@ -416,7 +420,34 @@ class TextBox {
           endShape(CLOSE);
         popMatrix();
       }
+
+      // chunk
+      fill(205);
+      rect(
+        0, 
+        SCROLL_BAR_DOMAIN * viewport_line / float(
+          lines.length - VIEWPORT_N_LINES
+        ) + SCROLLBAR_WIDTH, 
+        SCROLLBAR_WIDTH, 
+        SCROLL_CHUNK_HEIGHT
+      );
     popMatrix();
+  }
+
+  void normalizeSelection() {
+    sel_end_line = constrain(
+      sel_end_line, 
+      0, 
+      lines.length
+    );
+  }
+
+  void normalizeViewport() {
+    viewport_line = constrain(
+      viewport_line, 
+      0, 
+      lines.length - VIEWPORT_N_LINES + 2
+    );     
   }
 }
 
@@ -453,6 +484,7 @@ void mouseDragged() {
       int[] parsed = textBox.parseMouse();
       textBox.sel_end_char = parsed[0];
       textBox.sel_end_line = parsed[1];
+      textBox.normalizeSelection();
       textBox.viewportFollowSelection();
     }
   }
@@ -478,13 +510,17 @@ void handleSelectionScroll() {
   if (selection_scroll_cooldown < millis()) {
     if (selection_scrolling != 0) {
       textBox.sel_end_line += selection_scrolling;
-      textBox.sel_end_line = constrain(
-        textBox.sel_end_line, 
-        0, 
-        textBox.lines.length - 1
-      );
+      textBox.normalizeSelection();
       textBox.viewportFollowSelection();
       selection_scroll_cooldown = millis() + 30;
     }
+  }
+}
+
+void mouseWheel(MouseEvent event) {
+  if (inTextBox()) {
+    float delta = event.getCount();
+    textBox.viewport_line += delta;
+    textBox.normalizeViewport();
   }
 }
