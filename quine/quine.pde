@@ -31,6 +31,7 @@ void draw() {
   drawLow();
 
   handleSelectionScroll();
+  handleScrollbarSeek();
 }
 
 void drawBack() {
@@ -396,7 +397,7 @@ class TextBox {
             rect(0, 0, SCROLLBAR_WIDTH, SCROLLBAR_WIDTH);
             if (
               click_scroll_button_cooldown < millis()
-              && mousePressed
+              && mousePressed && (! dragSelecting)
             ) {
               textBox.viewport_line += round((i - .5) * 2);
               textBox.normalizeViewport();   
@@ -422,12 +423,19 @@ class TextBox {
       }
 
       // chunk
-      fill(205);
-      rect(
-        0, 
+      int chunk_y = round(
         SCROLL_BAR_DOMAIN * viewport_line / float(
           lines.length - VIEWPORT_N_LINES
-        ) + SCROLLBAR_WIDTH, 
+        ) + SCROLLBAR_WIDTH
+      );
+      if (inScrollBar()) {
+        fill(166);
+      } else {
+        fill(205);
+      }
+      rect(
+        0, 
+        chunk_y, 
         SCROLLBAR_WIDTH, 
         SCROLL_CHUNK_HEIGHT
       );
@@ -465,8 +473,17 @@ boolean inTextBox() {
     TextBox.HEIGHT
   );
 }
+boolean inScrollBar() {
+  return inRect(
+    TEXTBOX_LEFT + textBox.WIDTH, 
+    TEXTBOX_TOP + textBox.SCROLLBAR_WIDTH, 
+    textBox.SCROLLBAR_WIDTH, 
+    textBox.HEIGHT - 2 * textBox.SCROLLBAR_WIDTH
+  );
+}
 
 boolean dragSelecting = false;
+boolean draggingScrollbar = false;
 void mousePressed() {
   if (inTextBox()) {
     int[] parsed = textBox.parseMouse();
@@ -475,6 +492,10 @@ void mousePressed() {
     textBox.sel_end_char = parsed[0];
     textBox.sel_end_line = parsed[1];
     dragSelecting = true;
+  }
+
+  if (inScrollBar()) {
+    draggingScrollbar = true;
   }
 }
 
@@ -493,6 +514,7 @@ void mouseDragged() {
 void mouseReleased() {
   dragSelecting = false;
   selection_scrolling = 0;
+  draggingScrollbar = false;
 }
 
 int selection_scroll_cooldown = 0;
@@ -521,6 +543,20 @@ void mouseWheel(MouseEvent event) {
   if (inTextBox()) {
     float delta = event.getCount();
     textBox.viewport_line += delta;
+    textBox.normalizeViewport();
+  }
+}
+
+void handleScrollbarSeek() {
+  if (draggingScrollbar) {
+    float progress = (mouseY - (
+      TEXTBOX_TOP + textBox.SCROLLBAR_WIDTH
+    )) / float(
+      textBox.HEIGHT - 2 * textBox.SCROLLBAR_WIDTH
+    );
+    textBox.viewport_line = round(progress * (
+      textBox.lines.length - textBox.VIEWPORT_N_LINES
+    ));
     textBox.normalizeViewport();
   }
 }
