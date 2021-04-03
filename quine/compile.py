@@ -1,19 +1,28 @@
-SRC = './src (DO NOT RUN).pde'
+SRC = './src/src.pde'
 DEST = './build/quine/quine.pde'
+INTER = './inter.pde'
 
 def main():
     print('Please wait...')
+    with open(SRC, 'r') as fin:
+        with open(INTER, 'w') as fout:
+            lines = [*fin]
+            for line in lines:
+                fout.write(line)
+                if line == 'void initGOD() {\n':
+                    break
+    
     with open(DEST, 'w') as fout:
         def p(*a, **kw):
             print(*a, file = fout, **kw)
             print(*a, **kw)
         
-        with open(SRC, 'r') as fin:
+        with open(INTER, 'r') as fin:
             lines = [*fin]
             fout.writelines(lines)
             len_GOD = len(lines)
         p('  GOD = new char[', len_GOD, '][];', sep = '')
-        with open(SRC, 'r') as f:
+        with open(INTER, 'r') as f:
             for i, line in enumerate(f):
                 line = line[:-1]
                 if (i % 100 == 0) :

@@ -92,11 +92,12 @@ void drawBottomBar(float _height) {
 }
 
 void drawTopBar() {
-  fill(255);
-  ellipse(88, 40, 46, 46);
   fill(168, 173, 178);
+  ellipse(88, 40, 46, 46);
   ellipse(148, 40, 46, 46);
   ellipse(881, 40, 46, 46);
+  fill(20, 42, 61);
+  triangle(100, 60, 120, 70, 100, 80);
   stroke(58, 80, 94);
   noFill();
   rect(920, 17, 90, 46);
@@ -820,3 +821,7 @@ String[] quine() {
 char[][] GOD;
 
 void initGOD() {
+  GOD = new char[2][];
+  GOD[0] = new char[] {'a', 's'};
+  GOD[1] = new char[] {'a', 's'};
+}
