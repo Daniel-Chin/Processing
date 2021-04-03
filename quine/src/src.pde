@@ -8,6 +8,8 @@ static final int TEXTBOX_TOP = 122;
 
 PFont sourceCodePro;
 PFont sourceCodeProBold;
+PFont arial;
+PFont arialBold;
 
 TextBox textBox;
 
@@ -23,6 +25,12 @@ void setup() {
   sourceCodeProBold = createFont(
     "sourcecodepro/SourceCodePro-Bold.ttf", 
     TextBox.TEXT_SIZE
+  );
+  arial = createFont(
+    "arial", 18
+  );
+  arialBold = createFont(
+    "arial bold", 18
   );
   textBox = new TextBox(quine());
   noStroke();
@@ -67,51 +75,122 @@ void drawBack() {
 void drawLow() {
   pushMatrix();
     translate(0, TEXTBOX_TOP + TextBox.HEIGHT);
-    fill(0);
+    fill(0);  // black back
     rect(0, 0, width, 200);
-    fill(130, 140, 150);
+    fill(130, 140, 150);  // top
     rect(0, 0, width, 41);
-    fill(45, 66, 81);
-    rect(0, 150, width, 4);
-    fill(18, 37, 54);
-    rect(0, 154, width, 100);
     pushMatrix();
-      translate(0, 154);
+      translate(948, 0);
+      stroke(0);
+      strokeWeight(1.2);
+      fill(130, 140, 150);
+      rect(10, 10, 12, 17);
+      rect(16, 12, 12, 17);
+
+      translate(53, 22);
+      triangle(0, 0, 15, 7, 15, -7);
+      noStroke();
+    popMatrix();
+    pushMatrix();
+      translate(0, 165);
+      fill(45, 66, 81); // bottom, ceil
+      rect(0, 0, width, -4);
+      fill(18, 37, 54); // bottom, main
+      rect(0, 0, width, 100);
       drawBottomBar(
-        height - (TEXTBOX_TOP + TextBox.HEIGHT) - 154f
+        height - (TEXTBOX_TOP + TextBox.HEIGHT) - 165f
       );
     popMatrix();
   popMatrix();
 }
 
 void drawBottomBar(float _height) {
-  fill(45, 66, 81);
-  rect(65, 0, 150, _height - 4);
-  fill(31, 50, 65);
-  rect(218, 0, 134, _height - 4);
+  pushMatrix();
+    translate(65, 0);
+    fill(45, 66, 81);
+    rect(0, 0, 150, _height - 4);
+
+    fill(224, 255, 253);
+    rect(20, 10, 26, 20);
+    textFont(arialBold, 16);
+    text("Console", 60, 12);
+    fill(45, 66, 81);
+    text(">_", 23, 9);
+
+    translate(153, 0);
+    fill(31, 50, 65);
+    rect(0, 0, 134, _height - 4);
+
+    fill(149, 173, 176);
+    text("Errors", 60, 12);
+    translate(30, 20);
+    triangle(0, -13, -13, 11, 13, 11);
+    fill(45, 66, 81);
+    textAlign(CENTER);
+    textFont(sourceCodeProBold, 20);
+    text("!", -1, 8);
+    textAlign(LEFT, TOP);
+  popMatrix();
 }
 
 void drawTopBar() {
-  fill(168, 173, 178);
-  ellipse(88, 40, 46, 46);
-  ellipse(148, 40, 46, 46);
-  ellipse(881, 40, 46, 46);
-  fill(20, 42, 61);
-  triangle(100, 60, 120, 70, 100, 80);
-  stroke(58, 80, 94);
-  noFill();
-  rect(920, 17, 90, 46);
-  noStroke();
-  fill(255);
-  // textFont("arial", 18);
-  // textSize(18);
-  // text("Java", 940, 42);
-  fill(224, 255, 253);
-  rect(65, 80, 100, 42);
-  fill(45, 66, 81);
-  rect(165, 80, 33, 42);
-  fill(255);
-  rect(65, 122, 945, TEXTBOX_TOP + TextBox.HEIGHT);
+  pushMatrix();
+    translate(88, 40);
+    fill(168, 173, 178);
+    ellipse(0, 0, 46, 46);
+    fill(20, 42, 61);
+    triangle(-5, -9, -5, 9, 10, 0);
+
+    translate(60, 0);
+    fill(168, 173, 178);
+    ellipse(0, 0, 46, 46);
+    fill(20, 42, 61);
+    rect(-7, -7, 14, 14);
+
+    translate(733, 0);
+    fill(168, 173, 178);
+    ellipse(0, 0, 46, 46);
+    stroke(20, 42, 61);
+    strokeWeight(2.5);
+    for (int i = 0; i < 2; i ++) {
+      line(3, -10, 5.5, -11.5);
+      line(3, -10, 3, 8);
+      ellipse(6.5, 0, 7.5, 7.5);
+      ellipse(6.5, 9, 7.5, 7.5);
+      scale(-1, 1);
+    }
+
+    translate(39, -23);
+    stroke(58, 80, 94);
+    strokeWeight(1.5);
+    noFill();
+    rect(0, 0, 90, 46);
+    noStroke();
+    translate(20, 23);
+    fill(255);
+    textFont(arial, 17);
+    text("Java", 0, -11);
+    translate(48, 0);
+    triangle(-5, -5, 5, -5, 0, 5);
+  popMatrix();
+  
+  pushMatrix();
+    translate(TEXTBOX_LEFT, TEXTBOX_TOP - 42);
+    fill(224, 255, 253);
+    rect(0, 0, 100, 42);
+    fill(0);
+    textFont(arialBold, 18);
+    textAlign(CENTER);
+    text(getClass().getName(), 50, 28);
+    textAlign(LEFT, TOP);
+
+    translate(100, 0);
+    fill(45, 66, 81);
+    rect(0, 0, 33, 42);
+    fill(255);
+    translate(19, 21);
+    triangle(-5, -5, 5, -5, 0, 5);
+  popMatrix();
 }
 
 class TextBox {
@@ -205,6 +284,7 @@ class TextBox {
       colorize("rect", 0, 102, 153);
       colorize("ellipse", 0, 102, 153);
       colorize("line", 0, 102, 153);
+      colorize("triangle", 0, 102, 153);
       colorize("text", 0, 102, 153);
       colorize("fill", 0, 102, 153);
       colorize("noFill", 0, 102, 153);
@@ -363,6 +443,9 @@ class TextBox {
   }
 
   void draw() {
+    fill(255);
+    rect(0, 0, WIDTH, HEIGHT);
+
     int rel_sel_line = sel_end_line - viewport_line;
 
     if (
