@@ -1,4 +1,3 @@
-// cahnge to actual quine
 import java.awt.event.KeyEvent;
 
 static final int[] C_TOP = {20, 42, 62};
@@ -14,6 +13,9 @@ TextBox textBox;
 
 void setup() {
   size(1030, 810);
+  
+  initGOD();
+
   sourceCodePro = createFont(
     "sourcecodepro/SourceCodePro-Regular.ttf", 
     TextBox.TEXT_SIZE
@@ -774,32 +776,47 @@ void keyPressed() {
 }
 
 String[] quine() {
-  String[] result = new String[GOD.length * 2 + 3];
+  int gl = GOD.length;
+  String[] result = new String[
+    gl * 2 + (gl / 100 + 1) * 3 + 2
+  ];
   int line_i = 0;
-  while (line_i < GOD.length) {
+  while (line_i < gl) {
     result[line_i] = new String(GOD[line_i]);
     line_i ++;
   }
-  result[line_i] = "";
+  result[line_i] = "  GOD = new char[" + String.valueOf(
+    gl
+  ) + "][];";
   line_i ++;
-  result[line_i] = "char[][] GOD = {";
-  line_i ++;
-  for (int i = 0; i < GOD.length; i ++) {
+  for (int i = 0; i < gl; i ++) {
+    if (i % 100 == 0) {
+      String newGOD = "initGod" + String.valueOf(
+        i / 100
+      ) + "()";
+      result[line_i] = "  " + newGOD + ";";
+      line_i ++;
+      result[line_i] = "}";
+      line_i ++;
+      result[line_i] = "void " + newGOD + " {";
+      line_i ++;
+    }
     StringBuilder line = new StringBuilder();
-    line.append("  {");
+    line.append("  GOD[");
+    line.append(String.valueOf(i));
+    line.append("] = new char[] {");
     for (int j = 0; j < GOD[i].length; j ++) {
-      line.append(String.valueOf(GOD[i][j]));
+      line.append(String.valueOf(int(GOD[i][j])));
       line.append(", ");
     }
-    line.append("}, ");
+    line.append("};");
     result[line_i] = line.toString();
     line_i ++;
   }
-  result[line_i] = "};";
+  result[line_i] = "}";
   return result;
 }
 
-char[][] GOD = {
-  {40, 40, }, 
-  {40, 40, }, 
-};
+char[][] GOD;
+
+void initGOD() {
