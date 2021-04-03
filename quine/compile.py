@@ -1,4 +1,4 @@
-SRC = './src/src.pde'
+SRC = './SrcPApplet/SrcPApplet.pde'
 DEST = './build/quine/quine.pde'
 INTER = './inter.pde'
 
@@ -8,7 +8,7 @@ def main():
         with open(INTER, 'w') as fout:
             lines = [*fin]
             for line in lines:
-                fout.write(line)
+                fout.write(line.replace('SrcPApplet', 'quine'))
                 if line == 'void initGOD() {\n':
                     break
     

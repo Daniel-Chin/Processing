@@ -12,6 +12,8 @@ PFont arial;
 PFont arialBold;
 
 TextBox textBox;
+SrcPApplet child = null;
+SrcPApplet parent = null;
 
 void setup() {
   size(1030, 810);
@@ -136,9 +138,17 @@ void drawBottomBar(float _height) {
 void drawTopBar() {
   pushMatrix();
     translate(88, 40);
-    fill(168, 173, 178);
+    if (child == null) {
+      fill(168, 173, 178);
+    } else {
+      fill(255);
+    }
     ellipse(0, 0, 46, 46);
-    fill(20, 42, 61);
+    if (child == null) {
+      fill(20, 42, 61);
+    } else {
+      fill(0, 153, 0);
+    }
     triangle(-5, -9, -5, 9, 10, 0);
 
     translate(60, 0);
@@ -146,6 +156,14 @@ void drawTopBar() {
     ellipse(0, 0, 46, 46);
     fill(20, 42, 61);
     rect(-7, -7, 14, 14);
+
+    textFont(arial, 17);
+    fill(255);
+    if (inPlayButton()) {
+      text("Run", 35, -10);
+    } else if (inStopButton()) {
+      text("Stop", 35, -10);
+    }
 
     translate(733, 0);
     fill(168, 173, 178);
@@ -269,6 +287,7 @@ class TextBox {
       colorize("boolean", 226, 102, 26);
       colorize("color", 226, 102, 26);
       colorize("String", 226, 102, 26);
+      colorize("char", 226, 102, 26);
 
       colorize("setup", 0, 102, 153, true);
       colorize("draw", 0, 102, 153, true);
@@ -293,7 +312,6 @@ class TextBox {
       colorize("scale", 0, 102, 153);
       colorize("translate", 0, 102, 153);
       colorize("substring", 0, 102, 153);
-      colorize("char", 0, 102, 153);
       colorize("length", 0, 102, 153);
       colorize("charAt", 0, 102, 153);
       colorize("equals", 0, 102, 153);
@@ -751,10 +769,27 @@ void mousePressed() {
     textBox.sel_end_char = parsed[0];
     textBox.sel_end_line = parsed[1];
     dragSelecting = true;
-  }
-
-  if (inScrollBar()) {
+  } else if (inScrollBar()) {
     draggingScrollbar = true;
+  } else if (inPlayButton()) {
+    if (child == null) {
+      child = new SrcPApplet();
+      String[] args = {
+        "--sketch-path=" + sketchPath(), 
+        "--location=" + String.valueOf(
+          round(random(300))
+        ) + "," + String.valueOf(
+          round(random(300))
+        ), 
+        "quine"
+      };
+      SrcPApplet.runSketch(args, child);
+    }
+  } else if (inStopButton()) {
+    while (child != null) {
+      child.surface.setVisible(false);
+      child = child.child;
+    }
   }
 }
 
@@ -899,6 +934,17 @@ String[] quine() {
   }
   result[line_i] = "}";
   return result;
+}
+
+boolean inCircle(int x, int y, int r) {
+  return sq(mouseX - x) + sq(mouseY - y) < sq(r);
+}
+
+boolean inPlayButton() {
+  return inCircle(88, 40, 23);
+}
+boolean inStopButton() {
+  return inCircle(148, 40, 23);
 }
 
 char[][] GOD;
