@@ -272,7 +272,6 @@ class TextBox {
             while (span != null) {
               fill(span.c);
               text(span.text, 0, 0);
-              println(span.text);
               translate(CHAR_WIDTH * span.text.length(), 0);
               span = span.next;
             }
