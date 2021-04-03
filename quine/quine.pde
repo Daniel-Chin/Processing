@@ -1,7 +1,8 @@
-static final float TEXT_BOX_H = .75f;
 static final int[] C_TOP = {20, 42, 62};
 static final int[] C_MID = {2, 4, 7};
 static final float C_SMOOTH = .02;
+static final int TEXTBOX_LEFT = 65;
+static final int TEXTBOX_TOP = 122;
 
 PFont sourceCodePro;
 
@@ -10,7 +11,7 @@ TextBox textBox;
 void setup() {
   size(1030, 810);
   sourceCodePro = createFont("sourcecodepro/SourceCodePro-Regular.ttf", TextBox.TEXT_SIZE);
-  textBox = new TextBox("static final float TEXT_BOX_H = .75f;\nstatic final int[] C_TOP = {20, 42, 62};\nstatic final int[] C_MID = {2, 4, 7};\nstatic final float C_SMOOTH = .02;");
+  textBox = new TextBox("static final float H = .75f;\nstatic final int[] C_TOP = {20, 42, 62};\nstatic final int[] C_MID = {2, 4, 7};\nstatic final float C_SMOOTH = .02;");
   noStroke();
   textAlign(LEFT, TOP);
 }
@@ -19,7 +20,7 @@ void draw() {
   drawBack();
   drawTopBar();
   pushMatrix();
-    translate(65, 122);
+    translate(TEXTBOX_LEFT, TEXTBOX_TOP);
     textBox.draw();
   popMatrix();
   drawLow();
@@ -27,7 +28,7 @@ void draw() {
 
 void drawBack() {
   pushMatrix();
-    scale(width, height * TEXT_BOX_H);
+    scale(width, TEXTBOX_TOP + TextBox.HEIGHT);
     float j;
     for (float i = 0; i < 1; i += C_SMOOTH) {
       j = 1 - i;
@@ -43,9 +44,9 @@ void drawBack() {
 
 void drawLow() {
   pushMatrix();
-    translate(0, TEXT_BOX_H * height);
+    translate(0, TEXTBOX_TOP + TextBox.HEIGHT);
     fill(0);
-    rect(0, 0, width, height * (1f - TEXT_BOX_H));
+    rect(0, 0, width, 200);
     fill(130, 140, 150);
     rect(0, 0, width, 41);
     fill(45, 66, 81);
@@ -54,7 +55,9 @@ void drawLow() {
     rect(0, 154, width, 100);
     pushMatrix();
       translate(0, 154);
-      drawBottomBar(height * (1f - TEXT_BOX_H) - 154f);
+      drawBottomBar(
+        height - (TEXTBOX_TOP + TextBox.HEIGHT) - 154f
+      );
     popMatrix();
   popMatrix();
 }
@@ -85,22 +88,23 @@ void drawTopBar() {
   fill(45, 66, 81);
   rect(165, 80, 33, 42);
   fill(255);
-  rect(65, 122, 945, height * TEXT_BOX_H);
+  rect(65, 122, 945, TEXTBOX_TOP + TextBox.HEIGHT);
 }
 
 class TextBox {
-  static final int VIEWPORT_N_LINES = 13;
+  static final int VIEWPORT_N_LINES = 14;
   static final int LINE_HEIGHT = 35;
   static final int WIDTH = 934;
+  static final int HEIGHT = 476;
   static final int TEXT_SIZE = 27;
-  static final int CHAR_WIDTH = TEXT_SIZE;
+  float CHAR_WIDTH = TEXT_SIZE * .6;
   static final int CURSOR_BLINK_INTERVAL = 500;
+  static final int SCROLLBAR_WIDTH = 70;
 
   Line[] lines;
   int viewport_line = 0;
   int sel_start_line = 0;
   int sel_start_char = 0;
-  boolean sel_multi = false;
   int sel_end_line;
   int sel_end_char;
 
@@ -180,7 +184,7 @@ class TextBox {
     int rel_sel_line = sel_start_line - viewport_line;
 
     // current line highlight
-    if (! sel_multi) {
+    if (! isSelectingMulti()) {
       fill(235, 255, 253);
       rect(
         0, LINE_HEIGHT * rel_sel_line, 
@@ -198,11 +202,11 @@ class TextBox {
     // line numbers
     fill(187, 214, 213);
     textAlign(RIGHT, TOP);
-    textSize(16);
+    textSize(17);
     for (int i = 0; i < VIEWPORT_N_LINES; i ++) {
       text(
         String.valueOf(viewport_line + i + 1), 
-        -6, LINE_HEIGHT * i
+        -6, LINE_HEIGHT * i + 10
       );
     }
     textAlign(LEFT, TOP);
@@ -213,34 +217,52 @@ class TextBox {
 
       // selection background
       fill(255, 204, 0);
-      for (
-        int i = sel_start_line; i <= sel_end_line; i ++
+      int upper_line;
+      int upper_char;
+      int lower_line;
+      int lower_char;
+      if (
+        sel_start_line * 1000 + sel_start_char 
+        < sel_end_line * 1000 + sel_end_char 
       ) {
-        if (i == sel_start_line) {
-          if (i == sel_end_line) {
+        upper_line = sel_start_line;
+        upper_char = sel_start_char;
+        lower_line = sel_end_line;
+        lower_char = sel_end_char;
+      } else {
+        lower_line = sel_start_line;
+        lower_char = sel_start_char;
+        upper_line = sel_end_line;
+        upper_char = sel_end_char;
+      }
+      for (
+        int i = upper_line; i <= lower_line; i ++
+      ) {
+        if (i == upper_line) {
+          if (i == lower_line) {
             // same line
             rect(
-              CHAR_WIDTH * sel_start_char, 
+              CHAR_WIDTH * upper_char, 
               LINE_HEIGHT * (i - viewport_line), 
-              CHAR_WIDTH * (sel_end_char - sel_start_char), 
+              CHAR_WIDTH * (lower_char - upper_char), 
               LINE_HEIGHT
             );
           } else {
             // just start
             rect(
-              CHAR_WIDTH * sel_start_char, 
+              CHAR_WIDTH * upper_char, 
               LINE_HEIGHT * (i - viewport_line), 
-              WIDTH - CHAR_WIDTH * sel_start_char, 
+              WIDTH - CHAR_WIDTH * upper_char, 
               LINE_HEIGHT
             );
           }
         } else {
-          if (i == sel_end_line) {
+          if (i == lower_line) {
             // just end
             rect(
               0, 
               LINE_HEIGHT * (i - viewport_line), 
-              CHAR_WIDTH * sel_end_char, 
+              CHAR_WIDTH * lower_char, 
               LINE_HEIGHT
             );
           } else {
@@ -287,13 +309,61 @@ class TextBox {
       ) {
         stroke(0);
         line(
-          CHAR_WIDTH * sel_start_char, 
-          LINE_HEIGHT * rel_sel_line, 
-          CHAR_WIDTH * sel_start_char, 
-          LINE_HEIGHT * (rel_sel_line + 1)
+          CHAR_WIDTH * sel_end_char, 
+          LINE_HEIGHT * (sel_end_line - viewport_line), 
+          CHAR_WIDTH * sel_end_char, 
+          LINE_HEIGHT * (sel_end_line - viewport_line + 1)
         );
         noStroke();
       }
     popMatrix();
+  }
+
+  int[] parseMouse() {
+    int[] results = new int[2];
+    int x = mouseX - TEXTBOX_LEFT - 6;
+    int y = mouseY - TEXTBOX_TOP;
+    results[0] = round(x / CHAR_WIDTH);
+    results[1] = y / LINE_HEIGHT;
+    return results;
+  }
+
+  boolean isSelectingMulti() {
+    return ! (
+      sel_start_line == sel_end_line 
+      && sel_start_char == sel_end_char
+    );
+  }
+}
+
+boolean inTextBox() {
+  return (mouseX > TEXTBOX_LEFT && mouseY > TEXTBOX_TOP
+    && mouseX < TEXTBOX_LEFT + 
+    TextBox.WIDTH - TextBox.SCROLLBAR_WIDTH
+    && mouseY < TEXTBOX_TOP + TextBox.HEIGHT
+  );
+}
+
+boolean selecting = false;
+void mousePressed() {
+  if (inTextBox()) {
+    int[] parsed = textBox.parseMouse();
+    textBox.sel_start_char = parsed[0];
+    textBox.sel_start_line = parsed[1];
+    textBox.sel_end_char = parsed[0];
+    textBox.sel_end_line = parsed[1];
+    selecting = true;
+  }
+}
+
+void mouseDragged() {
+  if (selecting) {
+    if (inTextBox()) {
+      int[] parsed = textBox.parseMouse();
+      textBox.sel_end_char = parsed[0];
+      textBox.sel_end_line = parsed[1];
+    } else {
+
+    }
   }
 }
