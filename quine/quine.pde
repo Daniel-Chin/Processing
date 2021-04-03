@@ -1,4 +1,5 @@
 // cahnge to actual quine
+import java.awt.event.KeyEvent;
 
 static final int[] C_TOP = {20, 42, 62};
 static final int[] C_MID = {2, 4, 7};
@@ -115,6 +116,7 @@ class TextBox {
   int sel_start_char = 0;
   int sel_end_line;
   int sel_end_char;
+  int cursor_phase = 0;
 
   class Line {
     Span root;
@@ -327,7 +329,7 @@ class TextBox {
 
       // cursor
       if (
-        millis() % (CURSOR_BLINK_INTERVAL * 2) 
+        (millis() - cursor_phase) % (CURSOR_BLINK_INTERVAL * 2) 
         < CURSOR_BLINK_INTERVAL
       ) {
         stroke(0);
@@ -448,6 +450,8 @@ class TextBox {
       0, 
       lines.length
     );
+    sel_end_char = max(0, sel_end_char);
+    sel_start_char = max(0, sel_start_char);
   }
 
   void normalizeViewport() {
@@ -467,9 +471,11 @@ boolean inRect(int x1, int y1, int w, int h) {
 }
 boolean inTextBox() {
   return inRect(
-    TEXTBOX_LEFT, 
+    // TEXTBOX_LEFT, 
+    0, 
     TEXTBOX_TOP, 
-    TextBox.WIDTH, 
+    // TextBox.WIDTH, 
+    TextBox.WIDTH + TEXTBOX_LEFT, 
     TextBox.HEIGHT
   );
 }
@@ -558,5 +564,44 @@ void handleScrollbarSeek() {
       textBox.lines.length - textBox.VIEWPORT_N_LINES
     ));
     textBox.normalizeViewport();
+  }
+}
+
+void keyPressed() {
+  if (key == CODED) {
+    println("keyCode:", keyCode);
+    switch (keyCode) {
+      case UP:
+        textBox.sel_end_line -= 1;
+        break;
+      case DOWN:
+        textBox.sel_end_line += 1;
+        break;
+      case LEFT:
+        textBox.sel_end_char -= 1;
+        break;
+      case RIGHT:
+        textBox.sel_end_char += 1;
+        break;
+      case KeyEvent.VK_PAGE_UP:
+        textBox.sel_end_line -= textBox.VIEWPORT_N_LINES;
+        break;
+      case KeyEvent.VK_PAGE_DOWN:
+        textBox.sel_end_line += textBox.VIEWPORT_N_LINES;
+        break;
+      case KeyEvent.VK_END:
+        textBox.sel_end_char = 56;
+        break;
+      case KeyEvent.VK_HOME:
+        textBox.sel_end_char = 0;
+        break;
+      default:
+        return;
+    }
+    textBox.normalizeSelection();
+    textBox.sel_start_char = textBox.sel_end_char;
+    textBox.sel_start_line = textBox.sel_end_line;
+    textBox.viewportFollowSelection();
+    textBox.cursor_phase = millis();
   }
 }
