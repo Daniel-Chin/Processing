@@ -51,7 +51,7 @@ class BackButton extends Button {
 
 class ToggleButton extends Button {
   ToggleButton () {
-    super("toggle", 350f, 50f, 100f, 100f);
+    super("toggle 他狗", 350f, 50f, 100f, 100f);
   }
   void onClick() {
     subLayer1.toggleVisibility();
@@ -69,9 +69,12 @@ class Scene2 extends Layer {
 
 Scene1 scene1;
 Layer subLayer1;
+PFont verdana;
 
 void setup() {
   size(500, 500);
+  verdana = loadFont("KaiTi-24.vlw");
+  textFont(verdana);
   scene1 = new Scene1();
   scene1.title = "scene 1";
   director.enterScene(scene1);
