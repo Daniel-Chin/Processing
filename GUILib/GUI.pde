@@ -198,6 +198,7 @@ class Director {
   color themeHighlight = #005555;
   color themeHighlightInvert = #00cccc;
   color themeWeak = #555555;
+  float global_text_scale = 1f;
   void render() {
     if (transitionManager.render()) return;
     root.draw();
@@ -274,7 +275,7 @@ class Button extends Pressable {
     stroke(colorBorder);
     strokeWeight(2);
     rect(getPosition().x, getPosition().y, getSize().x, getSize().y, corner_smooth);
-    textSize(fontsize);
+    textSize(fontsize * director.global_text_scale);
     fill(fore);
     textAlign(CENTER, CENTER);
     text(_text, getPosition().x, getPosition().y - fontsize/8, getSize().x, getSize().y);
@@ -393,13 +394,13 @@ class Slider extends KeyboardListener {
       } else {
         fill(fore);
       }
-      textSize(fontsize);
+      textSize(fontsize * director.global_text_scale);
       textAlign(CENTER, CENTER);
       String to_draw;
       if (((Slider) parent).hasFocus()) {
         if (input_value.length() == 0) {
           to_draw = "Type!";
-          textSize(fontsize * hint_fontsize_ratio);
+          textSize(fontsize * hint_fontsize_ratio * director.global_text_scale);
         } else {
           to_draw = input_value;
         }
