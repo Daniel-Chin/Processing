@@ -1,7 +1,7 @@
 // Demo
 class NextSceneButton extends Button {
   public NextSceneButton() {
-    position=new PVector(30, 100);
+    position=new PVector(30, 50);
     _size.x = 200;
     _text = "next scene";
   }
@@ -70,6 +70,7 @@ class Scene2 extends Layer {
 Scene1 scene1;
 Layer subLayer1;
 PFont verdana;
+DemoSlider slider;
 
 void setup() {
   size(500, 500);
@@ -84,16 +85,37 @@ void setup() {
   scene1.add(subLayer1);
   NextSceneButton button2 = new NextSceneButton();
   subLayer1.add(button2);
-  DemoSlider slider = new DemoSlider();
+  slider = new DemoSlider();
   subLayer1.add(slider);
   subLayer1.add(new Card("display", 300f, 200f, 150f, 60f));
+  demoScrollSelect = new DemoScrollSelect();
+  subLayer1.add(demoScrollSelect);
 }
 
+int last_sec = 0;
 void draw() {
   background(0);
   director.render();
+  int sec = millis() / 500;
+  if (sec > last_sec) {
+    last_sec = sec;
+    demoScrollSelect.value = (demoScrollSelect.value + 1) % demoScrollSelect.range;
+  }
 }
 
 void keyPressed() {
   guiKeyPressed();
+}
+
+DemoScrollSelect demoScrollSelect;
+class DemoScrollSelect extends ScrollSelect {
+  DemoScrollSelect() {
+    super(8);
+    position = new PVector(10, 200);
+    _size = new PVector(40, 270);
+  }
+
+  void onUpdate(int value) {
+    slider.value = value;
+  }
 }

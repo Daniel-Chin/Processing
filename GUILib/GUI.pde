@@ -515,3 +515,56 @@ class Slider extends KeyboardListener {
     return String.valueOf(value);
   }
 }
+
+class ScrollSelect extends Pressable {
+  int range;
+  int value = 0;
+  float pad_each_side = .15;
+
+  ScrollSelect(int range) {
+    this.range = range;
+  }
+
+  boolean isMouseOver() {
+    return getPosition().x < mouseX && mouseX < getPosition().x+getSize().x 
+      && getPosition().y < mouseY && mouseY < getPosition().y+getSize().y;
+  }
+
+  void draw() {
+    float unit_height = getSize().y / float(range);
+    float inner_height = unit_height * (1f - 2 * pad_each_side);
+    pushMatrix();
+    translate(getPosition().x, getPosition().y);
+    noStroke();
+    for (int i = 0; i < range; i ++) {
+      if (i == value) {
+        fill(director.themeFore);
+      } else {
+        fill(director.themeWeak);
+      }
+      rect(
+        0, (i + pad_each_side) * unit_height, 
+        getSize().x, inner_height
+      );
+    }
+    popMatrix();
+    super.draw();
+  }
+
+  void onPress() {
+    trigger();
+  }
+  void onDrag(float delta_x, float delta_y) {
+    if (delta_x == 0 && delta_y == 0) return;
+    trigger();
+  }
+  void trigger() {
+    float ratio = (mouseY - getPosition().y) / getSize().y;
+    value = floor(range * ratio);
+    onUpdate(value);
+  }
+
+  void onUpdate(int value) {
+    // to override
+  }
+}
