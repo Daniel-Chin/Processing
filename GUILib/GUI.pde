@@ -522,6 +522,7 @@ class ScrollSelect extends Pressable {
   float pad_each_side = .15;
 
   ScrollSelect(int range) {
+    super();
     this.range = range;
   }
 
@@ -560,7 +561,7 @@ class ScrollSelect extends Pressable {
   }
   void trigger() {
     float ratio = (mouseY - getPosition().y) / getSize().y;
-    value = floor(range * ratio);
+    value = min(range - 1, max(0, floor(range * ratio)));
     onUpdate(value);
   }
 
