@@ -172,6 +172,7 @@ class Director {
       PVector position = button.position;
       PVector _size = button._size;
       strokeWeight(3);
+      stroke(director.themeFore);
       noFill();
       rect(
         t * position.x, 
