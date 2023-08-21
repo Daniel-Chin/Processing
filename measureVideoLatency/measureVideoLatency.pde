@@ -1,15 +1,19 @@
 import processing.serial.*;
 import java.util.*;
 
+static final boolean USE_SERIAL = false;
+
 Serial serial;
 
 void setup() {
     size(500, 500);
-    serial = new Serial(
-        this, "COM3", 9600 * 4
-    );
-    // delay(1000);
-    serial.clear();
+    if (USE_SERIAL) {
+      serial = new Serial(
+          this, "COM3", 9600 * 4
+      );
+      // delay(1000);
+      serial.clear();
+    }
 
     // testSelfRTT();
 }
@@ -19,22 +23,24 @@ void testSelfRTT() {
         // println("sending " + str(i) + "...");
         char c = (char) i;
         int start = millis();
-        serial.write(c);
-        while (serial.available() == 0) {
-            print("");  
-            /* 
-            if no instruction is here, Processing doesn't even 
-            yield and serial is never available. 
-            */
+        if (USE_SERIAL) {
+            serial.write(c);
+            while (serial.available() == 0) {
+                print("");  
+                /* 
+                if no instruction is here, Processing doesn't even 
+                yield and serial is never available. 
+                */
+            }
+            char got = serial.readChar();
+            if (got == c) {
+                int stop = millis();
+                println(stop - start);
+            } else {
+                println("got " + str((int)got));
+            }
+            // delay(500);
         }
-        char got = serial.readChar();
-        if (got == c) {
-            int stop = millis();
-            println(stop - start);
-        } else {
-            println("got " + str((int)got));
-        }
-        // delay(500);
     }
 }
 
@@ -45,7 +51,9 @@ void draw() {
     int _sec = millis() / 1000;
     if (sec != _sec) {
         sec = _sec;
-        serial.write('!');
+        if (USE_SERIAL) {
+            serial.write('!');
+        }
     }
     if (sec % 2 == 0) {
         background(0);
